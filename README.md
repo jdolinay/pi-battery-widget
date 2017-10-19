@@ -1,2 +1,2 @@
 # pi-top-battery-widget
-under development -ot released
+under development - not released
