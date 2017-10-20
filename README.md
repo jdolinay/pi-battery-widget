@@ -17,7 +17,7 @@ Open a terminal and type:
   pt-battery
 ```
 
-You an install the widget if the output looks as follows (of course with different values
+You can install the widget if the output looks as follows (of course with different values
 for each parameter)
 
 ```
@@ -27,7 +27,7 @@ Time Remaining: 590
 Wattage: 0
 ```
 
-** Installation**
+**Installation**
 
 Open a terminal and type the following
 
@@ -42,7 +42,7 @@ Open a terminal and type the following
 
 Reboot your pi.
 
-** To uninstall the widget  **
+**To uninstall the widget  **
 
 Open a terminal and type
 
