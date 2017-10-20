@@ -5,6 +5,8 @@ in the System Tray section.
 - The green bar turns red if the battery charge left is below 10%, and yellow if the
 battery is charging.
 
+![Alt text](panel.jpg?raw=true "panel with battery widget")
+
 > The widget uses the pt-battery script to obtain the necessary information about the battery.
 > Currently, this script is only installed and running on pi-topOS.
 > It has been tested on the original pi-top, but is expected to work properly
