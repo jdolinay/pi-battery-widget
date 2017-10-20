@@ -42,7 +42,7 @@ Open a terminal and type the following
 
 Reboot your pi.
 
-**To uninstall the widget  **
+**To uninstall the widget**
 
 Open a terminal and type
 
