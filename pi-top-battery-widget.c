@@ -25,7 +25,7 @@
  * Limitations:
  * ************
  *
- * Uses debrecated functions
+ * Uses deprecated functions
  *   gtk_status_icon_new_from_pixbuf
  *   gtk_status_icon_set_from_pixbuf
  * Corresponding compiler warnings can presently be ignored 
