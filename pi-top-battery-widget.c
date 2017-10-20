@@ -1,9 +1,10 @@
 /*
 
  * pi-top-battery-widget.c
+ * 
  * display pi-top battery status
- * uses pt-battery to get battery charge information
-
+ * uses /usr/bin/pt-battery to get battery charge information
+ *
  * Copyright 2016, 2017  rricharz 
  * 
  * This program is free software; you can redistribute it and/or modify
@@ -21,10 +22,19 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
  * MA 02110-1301, USA.
  * 
+ * Limitations:
+ * ************
+ *
+ * Uses debrecated functions
+ *   gtk_status_icon_new_from_pixbuf
+ *   gtk_status_icon_set_from_pixbuf
+ * Corresponding compiler warnings can presently be ignored 
+ * 
+ * Must be installed at ~/bin, loads battery_icon.png from there
  * 
  */
 
-#define VERSION			"S=2.0"
+
 
 #include <time.h>
 #include <stdio.h>
@@ -38,9 +48,9 @@
 #include <gtk/gtk.h>
 #include <gdk-pixbuf/gdk-pixbuf.h>
 
-#define GRAY_LEVEL      0.93
-
-#define REDLEVEL        10	// below this level battery charge display is red
+#define GRAY_LEVEL      0.93	// Background of % charge display
+#define REDLEVEL        10		// below this level battery charge display is red
+#define INTERVAL		5000	// msec between two updates
 
 cairo_surface_t *surface;
 gint width;
@@ -53,6 +63,7 @@ int first;
 GtkStatusIcon* statusIcon;
 FILE *battskript;
 
+// The following function is called every INTERVAL msec
 static gboolean timer_event(GtkWidget *widget)
 {
 	cairo_t *cr;
@@ -66,7 +77,11 @@ static gboolean timer_event(GtkWidget *widget)
 	int chargingState;
 	char battdata[2048];
 	
-	g_source_remove(global_timeout_ref);     // stop timer in case of tc_loop taking too long
+	// stop timer in case of tc_loop taking too long
+	
+	g_source_remove(global_timeout_ref);
+	
+	// run /usr/bin/pt-battery and extract current charge and state from output
 	
 	battskript = popen("/usr/bin/pt-battery","r");
 	if (battskript == NULL) {
@@ -96,9 +111,12 @@ static gboolean timer_event(GtkWidget *widget)
 	else if (chargingState == 1)
 		sstatus = "charging";
 		
+	// create a drawing surface
+		
 	cr = cairo_create (surface);
 	
-	// fill the battery symbol
+	// fill the battery symbol wth a colored bar
+	
 	if (capacity < 0)         // capacity out of limits
 	  w = 0;
 	else
@@ -107,7 +125,7 @@ static gboolean timer_event(GtkWidget *widget)
 		cairo_set_source_rgb (cr, 1, 1, 0);
 	else if (capacity <= REDLEVEL)
 		cairo_set_source_rgb (cr, 1, 0, 0);
-	else if (strcmp(sstatus,"external power") == 0)
+	else if (strcmp(sstatus,"external power") == 0)  // currently not used
 	    cairo_set_source_rgb (cr, 0.5, 0.5, 0.7);
 	else
 		cairo_set_source_rgb (cr, 0, 1, 0);
@@ -120,6 +138,7 @@ static gboolean timer_event(GtkWidget *widget)
 	}
 	
 	// display the capacity figure
+	
 	cairo_set_source_rgb (cr, GRAY_LEVEL, GRAY_LEVEL, GRAY_LEVEL);
 	cairo_rectangle (cr, 0, 20, 35, 15);
 	cairo_fill (cr);  
@@ -138,6 +157,7 @@ static gboolean timer_event(GtkWidget *widget)
 	}
 		
 	// Create a new pixbuf from the modified surface and display icon
+	
 	new_pixbuf = gdk_pixbuf_get_from_surface(surface, 0, 0, width, height);
 	
 	if (first) {
@@ -151,11 +171,14 @@ static gboolean timer_event(GtkWidget *widget)
 	g_object_unref(new_pixbuf);
 	cairo_destroy (cr);
 	
-	// restart timer		
-	global_timeout_ref = g_timeout_add(5000, (GSourceFunc) timer_event, (gpointer) MainWindow);
+	// restart timer
+			
+	global_timeout_ref = g_timeout_add(INTERVAL, (GSourceFunc) timer_event, (gpointer) MainWindow);
 	
 	return TRUE;
 }
+
+// This function is called once at startup to initialize everything
 
 int main(int argc, char *argv[])
 {
@@ -165,22 +188,22 @@ int main(int argc, char *argv[])
 	
 	first = TRUE;
 	
-	const char *homedir = getpwuid(getuid())->pw_dir;	
-	char s[255];
-  
 	gtk_init(&argc, &argv);
 	
 	// check whether pt-battery can be executed
 	
 	battskript = popen("/usr/bin/pt-battery","r");
 	if (battskript == NULL) {
-		printf("Failed to run pt-battery\n");
+		printf("Failed to run /usr/bin/pt-battery\n");
 		exit (1);
 	}
 	else
 		pclose(battskript);
 
 	// create the drawing surface and fill with icon
+	
+	const char *homedir = getpwuid(getuid())->pw_dir;	
+	char s[255]; 
 	strcpy(s, homedir);
 	strcat(s, "/bin/battery_icon.png" );
 	// printf("s = %s\n",s);
@@ -196,6 +219,7 @@ int main(int argc, char *argv[])
 	g_assert (surface != NULL);
 	
 	// Draw icon onto the surface
+	
 	cr = cairo_create (surface);     
 	gdk_cairo_set_source_pixbuf (cr, pixbuf, 0, 0);
 	cairo_paint (cr);
@@ -203,10 +227,12 @@ int main(int argc, char *argv[])
 	
 	// Add timer event
 	// Register the timer and set time in mS.
-	// The timer_event() function is called repeatedly until it returns FALSE. 
-	global_timeout_ref = g_timeout_add(5000, (GSourceFunc) timer_event, (gpointer) NULL);
+	// The timer_event() function is called repeatedly.
+	 
+	global_timeout_ref = g_timeout_add(INTERVAL, (GSourceFunc) timer_event, (gpointer) MainWindow);
 
 	// Call the timer function because we don't want to wait for the first time period triggered call
+
 	timer_event(MainWindow);
 	
 	gtk_main();
