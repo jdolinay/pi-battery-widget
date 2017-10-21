@@ -70,8 +70,9 @@ static gboolean timer_event(GtkWidget *widget)
 	GdkPixbuf *new_pixbuf;
 	int w;
 	char str[255];
+	char timeStr[255];
 	
-	int capacity;
+	int capacity, time;
 	char *sstatus;
 	
 	int chargingState;
@@ -91,10 +92,12 @@ static gboolean timer_event(GtkWidget *widget)
 	
 	chargingState = -1;
 	capacity = -1;
+	time = -1;
 
     while (fgets(battdata, 2047, battskript) != NULL) {
 		sscanf(battdata,"Charging State: %d", &chargingState);
 		sscanf(battdata,"Capacity:%d", &capacity);
+		sscanf(battdata,"Time Remaining:%d", &time);
 	}
 		
 	// printf("Charging State: %d, ", chargingState);
@@ -110,6 +113,29 @@ static gboolean timer_event(GtkWidget *widget)
 		sstatus = "discharging";
 	else if (chargingState == 1)
 		sstatus = "charging";
+		
+	// prepare tooltip
+	sprintf(timeStr, "pi-top-battery-widget");
+	if (strcmp(sstatus,"charging") == 0) {
+		if ((time > 0) && (time < 1000)) {
+			if (time <= 90) {
+				sprintf(timeStr, "Charging time: %d minutes\n", time);
+			}
+			else {
+				sprintf(timeStr, "Charging time: %.1f hours\n", (float)time / 60.0);  
+			}
+		}
+	}
+	else if (strcmp(sstatus,"discharging") == 0) {
+		if ((time > 0) && (time < 1000)) {
+			if (time <= 90) {
+				sprintf(timeStr, "Time remaining: %d minutes\n", time);
+			}
+			else {
+				sprintf(timeStr, "Time remaining: %.1f hours\n", (double)time / 60.0);  
+			}
+		} 
+	}
 		
 	// create a drawing surface
 		
@@ -165,8 +191,9 @@ static gboolean timer_event(GtkWidget *widget)
 		first = FALSE;
 	}
 	else {
-		gtk_status_icon_set_from_pixbuf(statusIcon,new_pixbuf);
+		gtk_status_icon_set_from_pixbuf(statusIcon, new_pixbuf);
 	}
+	gtk_status_icon_set_tooltip_text(statusIcon, timeStr);
 	    
 	g_object_unref(new_pixbuf);
 	cairo_destroy (cr);

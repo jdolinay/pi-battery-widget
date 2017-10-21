@@ -4,6 +4,7 @@
 in the System Tray section.
 - The green bar turns red if the battery charge left is below 10%, and yellow if the
 battery is charging.
+- The time remaining is displayed as a tooltip
 - The display is updated every 5 seconds
 
 ![Alt text](panel.jpg?raw=true "panel with battery widget")
