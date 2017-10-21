@@ -4,6 +4,7 @@
 in the System Tray section.
 - The green bar turns red if the battery charge left is below 10%, and yellow if the
 battery is charging.
+- The display is updated every 5 seconds
 
 ![Alt text](panel.jpg?raw=true "panel with battery widget")
 
@@ -28,6 +29,12 @@ Capacity: 70
 Time Remaining: 590
 Wattage: 0
 ```
+
+If you have been using
+[pi-top-battery-status](http://github.com/rricharz/pi-top-battery-status) before,
+you should uninstall it. See the instructions to uninstall that program in the description
+of that repository. The low power warnings and the automatic shutdown are now part of the
+pi-top software.
 
 **Installation**
 
