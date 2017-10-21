@@ -28,7 +28,6 @@
  * Uses deprecated functions
  *   gtk_status_icon_new_from_pixbuf
  *   gtk_status_icon_set_from_pixbuf
- * Corresponding compiler warnings can presently be ignored 
  * 
  * Must be installed at ~/bin, loads battery_icon.png from there
  * 
@@ -45,6 +44,7 @@
 #include <pwd.h>
 
 #include <cairo.h>
+#define GDK_DISABLE_DEPRECATION_WARNINGS
 #include <gtk/gtk.h>
 #include <gdk-pixbuf/gdk-pixbuf.h>
 
