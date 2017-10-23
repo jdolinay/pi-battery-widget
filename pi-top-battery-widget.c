@@ -63,6 +63,8 @@ int first;
 GtkStatusIcon* statusIcon;
 FILE *battskript;
 
+int last_capacity, last_state, last_time;
+
 // The following function is called every INTERVAL msec
 static gboolean timer_event(GtkWidget *widget)
 {
@@ -107,6 +109,14 @@ static gboolean timer_event(GtkWidget *widget)
 		capacity = -1;              // capacity out of limits
 
 	pclose(battskript);
+	
+	
+	// check whether anything has changed
+	if ((last_state == chargingState) && (last_time == time) && (last_capacity == capacity)) {
+		// restart timer and return without updating icon
+		global_timeout_ref = g_timeout_add(INTERVAL, (GSourceFunc) timer_event, (gpointer) MainWindow);	
+		return TRUE;		
+	}
 	
 	sstatus = "unknown";
 	if (chargingState == 0)
@@ -198,6 +208,10 @@ static gboolean timer_event(GtkWidget *widget)
 	g_object_unref(new_pixbuf);
 	cairo_destroy (cr);
 	
+	last_capacity = capacity;
+	last_state = chargingState;
+	last_time = time;
+	
 	// restart timer
 			
 	global_timeout_ref = g_timeout_add(INTERVAL, (GSourceFunc) timer_event, (gpointer) MainWindow);
@@ -214,6 +228,9 @@ int main(int argc, char *argv[])
 	cairo_format_t format;
 	
 	first = TRUE;
+	last_capacity = -1;
+	last_state = -1;
+	last_time = -1;
 	
 	gtk_init(&argc, &argv);
 	
