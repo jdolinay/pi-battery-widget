@@ -12,7 +12,7 @@ battery is charging.
 
 If you want to use this battery widget with Raspian Stretch, you first need to make sure
 that the latest pi-top software for the pi-top hardware is installed. More
-information is [here](http:github.com/rricharzpi-top-setup). 
+information is [here](http:github.com/rricharz/pi-top-setup). 
 On pi-topOS you canskip this step. Open a terminal and type
 
 
