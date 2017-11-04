@@ -8,7 +8,7 @@ battery is charging.
 - The display is updated every 5 seconds
 - Can be installed in pi-topOS and Raspbian Stretch
 
-![Alt text](panel.jpg?raw=true "panel with battery widget")
+![Alt text](icon.png?raw=true "panel with battery widget")
 
 If you want to use this battery widget with Raspian Stretch, you first need to make sure
 that the latest pi-top software for the pi-top hardware is installed. More
