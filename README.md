@@ -1,27 +1,34 @@
 # pi-top-battery-widget
 
-- Displays a battery widget on the desktop panel of the pi-top laptop at the right side
+- Displays a battery widget on the desktop panel of the pi-top laptop (version 1 and 2) at the right side
 in the System Tray section.
 - The green bar turns red if the battery charge left is below 10%, and yellow if the
 battery is charging.
 - The time remaining is displayed as a tooltip
 - The display is updated every 5 seconds
+- Can be installed in pi-topOS and Raspbian Stretch
 
 ![Alt text](panel.jpg?raw=true "panel with battery widget")
 
-> The widget uses the pt-battery script to obtain the necessary information about the battery.
-> Currently, this script is only installed and running on pi-topOS.
-> It has been tested on the original pi-top, but is expected to work properly
-> on the new pi-top with the sliding keyboard
+If you want to use this battery widget with Raspian Stretch, you first need to make sure
+that the latest pi-top software for the pi-top hardware is installed. On pi-topOS you can
+skip this step. Open a terminal and type
 
-Before installing the widget, make sure that pt-battery works properly on your pi-top.
+
+```
+sudo apt update
+sudo apt upgrade
+sudo apt install pt-hub
+```
+
+Now you can check whether pt-battery works properly on your pi-top.
 Open a terminal and type:
 
 ```
   pt-battery
 ```
 
-You can install the widget if the output looks as follows (of course with different values
+The widget will work properly if the output looks as follows (of course with different values
 for each parameter)
 
 ```
