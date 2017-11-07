@@ -1,3 +1,5 @@
+#!/bin/bash
+# Uninstall p-top-battery-widget
 
 # kill running pi-top-battery-widget command
 pkill pi-top-battery-
