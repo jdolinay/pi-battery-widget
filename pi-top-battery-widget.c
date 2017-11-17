@@ -153,6 +153,13 @@ static gboolean timer_event(GtkWidget *widget)
 		
 	cr = cairo_create (surface);
 	
+	// scale surface, if necessary
+	
+	if (width != iconSize) {
+		double scaleFactor = (double) iconSize / (double) width;
+		cairo_scale(cr, scaleFactor,scaleFactor);
+	}
+	
 	// fill the battery symbol wth a colored bar
 	
 	if (capacity < 0)         // capacity out of limits
@@ -196,7 +203,7 @@ static gboolean timer_event(GtkWidget *widget)
 		
 	// Create a new pixbuf from the modified surface and display icon
 	
-	new_pixbuf = gdk_pixbuf_get_from_surface(surface, 0, 0, width, height);
+	new_pixbuf = gdk_pixbuf_get_from_surface(surface, 0, 0, iconSize, iconSize);
 	
 	if (first) {
 		statusIcon= gtk_status_icon_new_from_pixbuf(new_pixbuf);
@@ -269,7 +276,6 @@ int main(int argc, char *argv[])
 
 	// create the drawing surface and fill with icon
 
-
 	strcpy(s, homedir);
 	strcat(s, "/bin/battery_icon.png" );
 	// printf("s = %s\n",s);
@@ -279,18 +285,23 @@ int main(int argc, char *argv[])
 		return 1;
 	}
 	format = (gdk_pixbuf_get_has_alpha (pixbuf)) ? CAIRO_FORMAT_ARGB32 : CAIRO_FORMAT_RGB24;
-	width = gdk_pixbuf_get_width (pixbuf);
-	if (width < iconSize)
-	    width = iconSize;
 	height = gdk_pixbuf_get_height (pixbuf);
-	if (height < iconSize)
-	    height = iconSize;
-	surface = cairo_image_surface_create (format, width, height);
+	width = gdk_pixbuf_get_width (pixbuf);
+	surface = cairo_image_surface_create (format, iconSize, iconSize);
 	g_assert (surface != NULL);
 	
-	// Draw icon onto the surface
+	cr = cairo_create (surface);
 	
-	cr = cairo_create (surface);     
+	
+	// scale surface, if necessary
+	
+	if (width != iconSize) {
+		double scaleFactor = (double) iconSize / (double) width;
+		cairo_scale(cr, scaleFactor,scaleFactor);
+	}
+	
+	// Draw icon onto the surface
+	 
 	gdk_cairo_set_source_pixbuf (cr, pixbuf, 0, 0);
 	cairo_paint (cr);
 	cairo_destroy (cr);
