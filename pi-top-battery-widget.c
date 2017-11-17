@@ -65,6 +65,8 @@ FILE *battskript;
 
 int last_capacity, last_state, last_time;
 
+int iconSize;
+
 // The following function is called every INTERVAL msec
 static gboolean timer_event(GtkWidget *widget)
 {
@@ -241,13 +243,33 @@ int main(int argc, char *argv[])
 		printf("Failed to run /usr/bin/pt-battery\n");
 		exit (1);
 	}
-	else
+	else		
 		pclose(battskript);
+		
+	// get lxpanel icon size
+	const char *homedir = getpwuid(getuid())->pw_dir;	
+	char s[255];
+	iconSize = -1;
+	strcpy(s, homedir);
+	strcat(s, "/.config/lxpanel/LXDE-pi/panels/panel");
+	FILE* lxpanel = fopen(s, "r");
+	if (lxpanel == NULL) {
+		printf("Failed to open lxpanel config file %s\n", s);
+	}
+	else {
+		char lxpaneldata[2048];
+		while ((fgets(lxpaneldata, 2047, lxpanel) != NULL) && (iconSize == -1)) {
+			sscanf(lxpaneldata,"  iconsize=%d", &iconSize);
+		}
+		fclose(lxpanel);
+	}
+	if (iconSize == -1)    // default
+		iconSize = 36;
+	printf("lxpanel iconSize = %d\n", iconSize);
 
 	// create the drawing surface and fill with icon
-	
-	const char *homedir = getpwuid(getuid())->pw_dir;	
-	char s[255]; 
+
+
 	strcpy(s, homedir);
 	strcat(s, "/bin/battery_icon.png" );
 	// printf("s = %s\n",s);
@@ -258,7 +280,11 @@ int main(int argc, char *argv[])
 	}
 	format = (gdk_pixbuf_get_has_alpha (pixbuf)) ? CAIRO_FORMAT_ARGB32 : CAIRO_FORMAT_RGB24;
 	width = gdk_pixbuf_get_width (pixbuf);
+	if (width < iconSize)
+	    width = iconSize;
 	height = gdk_pixbuf_get_height (pixbuf);
+	if (height < iconSize)
+	    height = iconSize;
 	surface = cairo_image_surface_create (format, width, height);
 	g_assert (surface != NULL);
 	
