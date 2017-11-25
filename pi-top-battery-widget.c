@@ -52,6 +52,8 @@
 #define REDLEVEL        10		// below this level battery charge display is red
 #define INTERVAL		5000	// msec between two updates
 
+#define MAKELOG         1     // log file batteryLog in home directory (0 = no log file)
+
 cairo_surface_t *surface;
 gint width;
 gint height;
@@ -62,10 +64,28 @@ guint global_timeout_ref;
 int first;
 GtkStatusIcon* statusIcon;
 FILE *battskript;
+FILE *logFile;
 
 int last_capacity, last_state, last_time;
 
 int iconSize;
+
+void printLogEntry(int capacity, char* state, char* timeStr) {
+	time_t rawtime;
+	struct tm *timeinfo;
+	char timeString[80];
+	
+	time(&rawtime);
+	timeinfo = localtime(&rawtime);
+	strftime(timeString, 80, "%D %R:%S", timeinfo);
+	fprintf(logFile, timeString);
+	// printf("%s:  %s %d\n", timeString, s, i);
+	
+	fprintf(logFile, ", Capacity: %3d%%", capacity);
+		
+	fprintf(logFile, ", %s, %s\n", state, timeStr);
+	fflush(logFile);
+}
 
 // The following function is called every INTERVAL msec
 static gboolean timer_event(GtkWidget *widget)
@@ -113,8 +133,8 @@ static gboolean timer_event(GtkWidget *widget)
 	pclose(battskript);
 	
 	
-	// check whether anything has changed
-	if ((last_state == chargingState) && (last_time == time) && (last_capacity == capacity)) {
+	// check whether state or capacity has changed
+	if ((last_state == chargingState) && (last_capacity == capacity)) {
 		// restart timer and return without updating icon
 		global_timeout_ref = g_timeout_add(INTERVAL, (GSourceFunc) timer_event, (gpointer) MainWindow);	
 		return TRUE;		
@@ -131,23 +151,27 @@ static gboolean timer_event(GtkWidget *widget)
 	if (strcmp(sstatus,"charging") == 0) {
 		if ((time > 0) && (time < 1000)) {
 			if (time <= 90) {
-				sprintf(timeStr, "Charging time: %d minutes\n", time);
+				sprintf(timeStr, "Charging time: %d minutes", time);
 			}
 			else {
-				sprintf(timeStr, "Charging time: %.1f hours\n", (float)time / 60.0);  
+				sprintf(timeStr, "Charging time: %.1f hours", (float)time / 60.0);  
 			}
 		}
 	}
 	else if (strcmp(sstatus,"discharging") == 0) {
 		if ((time > 0) && (time < 1000)) {
 			if (time <= 90) {
-				sprintf(timeStr, "Time remaining: %d minutes\n", time);
+				sprintf(timeStr, "Time remaining: %d minutes", time);
 			}
 			else {
-				sprintf(timeStr, "Time remaining: %.1f hours\n", (double)time / 60.0);  
+				sprintf(timeStr, "Time remaining: %.1f hours", (double)time / 60.0);  
 			}
 		} 
 	}
+	
+	// update log
+	
+	printLogEntry(capacity, sstatus, timeStr);
 		
 	// create a drawing surface
 		
@@ -160,7 +184,7 @@ static gboolean timer_event(GtkWidget *widget)
 		cairo_scale(cr, scaleFactor,scaleFactor);
 	}
 	
-	// fill the battery symbol wth a colored bar
+	// fill the battery symbol with a colored bar
 	
 	if (capacity < 0)         // capacity out of limits
 	  w = 0;
@@ -243,25 +267,39 @@ int main(int argc, char *argv[])
 	
 	gtk_init(&argc, &argv);
 	
+	// open log file
+	
+	const char *homedir = getpwuid(getuid())->pw_dir;	
+	char s[255];
+	if (MAKELOG) {
+		strcpy(s, homedir);
+		strcat(s, "/batteryLog.txt" );
+		// printf("s = %s\n",s);
+		logFile = fopen(s,"a");
+		fprintf(logFile, "Starting pi-top-battery-widget\n");
+	}
+	else
+		logFile = stdout;
+	
 	// check whether pt-battery can be executed
 	
 	battskript = popen("/usr/bin/pt-battery","r");
 	if (battskript == NULL) {
 		printf("Failed to run /usr/bin/pt-battery\n");
+		fprintf(logFile,"Failed to run /usr/bin/pt-battery\n");
 		exit (1);
 	}
 	else		
 		pclose(battskript);
 		
 	// get lxpanel icon size
-	const char *homedir = getpwuid(getuid())->pw_dir;	
-	char s[255];
 	iconSize = -1;
 	strcpy(s, homedir);
 	strcat(s, "/.config/lxpanel/LXDE-pi/panels/panel");
 	FILE* lxpanel = fopen(s, "r");
 	if (lxpanel == NULL) {
 		printf("Failed to open lxpanel config file %s\n", s);
+		fprintf(logFile,"Failed to open lxpanel config file %s\n", s);
 	}
 	else {
 		char lxpaneldata[2048];
@@ -272,7 +310,7 @@ int main(int argc, char *argv[])
 	}
 	if (iconSize == -1)    // default
 		iconSize = 36;
-	printf("lxpanel iconSize = %d\n", iconSize);
+	// printf("lxpanel iconSize = %d\n", iconSize);
 
 	// create the drawing surface and fill with icon
 
@@ -282,6 +320,7 @@ int main(int argc, char *argv[])
 	pixbuf = gdk_pixbuf_new_from_file (s, NULL);
 	if (pixbuf == NULL) {
 		printf("Cannot load icon (%s)\n", s);
+		fprintf(logFile,"Cannot load icon (%s)\n", s);
 		return 1;
 	}
 	format = (gdk_pixbuf_get_has_alpha (pixbuf)) ? CAIRO_FORMAT_ARGB32 : CAIRO_FORMAT_RGB24;

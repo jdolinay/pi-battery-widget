@@ -7,6 +7,7 @@ battery is charging.
 - The time remaining is displayed as a tooltip
 - The display is updated every 5 seconds
 - Can be installed in pi-topOS and Raspbian Stretch
+- Logs all activities in ~/batteryLog.txt
 
 ![Alt text](icon.png?raw=true "panel with battery widget")
 
