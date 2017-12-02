@@ -46,6 +46,10 @@ you should uninstall it. See the instructions to uninstall that program in the d
 of that repository. The low power warnings and the automatic shutdown are now part of the
 pi-top software.
 
+>On latest upgrade of Raspian Stretch (December 1, 2017) a new battery icon
+>*Battery (pi-top / laptop)* is automatically installed and enabled on the pi-top rev 1.
+>Installation of this battery widget should not be required anymore.
+
 **Installation**
 
 Open a terminal and type the following
