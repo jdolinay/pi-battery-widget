@@ -11,6 +11,11 @@ battery is charging.
 
 ![Alt text](icon.png?raw=true "panel with battery widget")
 
+>Starting with the latest upgrade of Raspian Stretch (December 1, 2017) a new battery icon
+>*Battery (pi-top / laptop)* should be automatically installed and enabled on the pi-top rev 1.
+>If this battery icon shows up on your pi-top, installation of the battery widget in this
+>repository is not required anymore.
+
 If you want to use this battery widget with Raspian Stretch, you first need to make sure
 that the latest pi-top software for the pi-top hardware is installed. More
 information can be found in the [pi-top-setup repository](http:github.com/rricharz/pi-top-setup). 
@@ -46,9 +51,6 @@ you should uninstall it. See the instructions to uninstall that program in the d
 of that repository. The low power warnings and the automatic shutdown are now part of the
 pi-top software.
 
->On latest upgrade of Raspian Stretch (December 1, 2017) a new battery icon
->*Battery (pi-top / laptop)* is automatically installed and enabled on the pi-top rev 1.
->Installation of this battery widget should not be required anymore.
 
 **Installation**
 
