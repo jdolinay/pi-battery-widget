@@ -5,7 +5,7 @@
  * display pi-top battery status
  * uses /usr/bin/pt-battery to get battery charge information
  *
- * Copyright 2016, 2017  rricharz 
+ * Copyright 2016, 2017  rricharz <rricharz77@gmail.com>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by

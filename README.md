@@ -77,3 +77,7 @@ Open a terminal and type
   chmod +x uninstall
   ./uninstall
 ```
+
+
+Please open an issue in this repository or write to rricharz77@gmail.com if you have any feedback
+or problem with this repository. Your input is appreciated.
