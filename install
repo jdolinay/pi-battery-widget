@@ -16,6 +16,10 @@ pkill pi-top-battery- 2>/dev/null
 #make sure that files are executable
 chmod +x pi-top-battery-widget
 
+#need to recompile to work on Jessie and Stretch
+touch pi-top-battery-widget.c
+make
+
 #copy necessary files to ~/bin
 cp battery_icon.png ~/bin
 cp pi-top-battery-widget ~/bin
