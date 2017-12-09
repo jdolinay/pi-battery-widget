@@ -69,7 +69,7 @@ Open a terminal and type the following
 Reboot your pi.
 
 
-**To update the widget to the latest version the widget**
+**To update the widget to the latest version**
 
 Open a terminal and type
 
