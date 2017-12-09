@@ -68,6 +68,20 @@ Open a terminal and type the following
 
 Reboot your pi.
 
+
+**To update the widget to the latest version the widget**
+
+Open a terminal and type
+
+```
+  cd
+  cd Downloads/pi-top-battery-widget
+  git pull
+  chmod +x install
+  ./install
+```
+
+
 **To uninstall the widget**
 
 Open a terminal and type

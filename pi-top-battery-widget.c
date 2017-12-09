@@ -3,7 +3,7 @@
  * pi-top-battery-widget.c
  * 
  * display pi-top battery status
- * uses /usr/bin/pt-battery to get battery charge information
+ * gets information from the pi-top Device Manager Request Server
  *
  * Copyright 2016, 2017  rricharz <rricharz77@gmail.com>
  * 
@@ -28,12 +28,11 @@
  * Uses deprecated functions
  *   gtk_status_icon_new_from_pixbuf
  *   gtk_status_icon_set_from_pixbuf
+ *   gtk_status_icon_set_tooltip_text(
  * 
  * Must be installed at ~/bin, loads battery_icon.png from there
  * 
  */
-
-
 
 #include <time.h>
 #include <stdio.h>
@@ -47,6 +46,12 @@
 #define GDK_DISABLE_DEPRECATION_WARNINGS
 #include <gtk/gtk.h>
 #include <gdk-pixbuf/gdk-pixbuf.h>
+
+#include <zmq.h>
+#define REQ_GET_BATTERY_STATE        "118"
+#define RSP_GET_BATTERY_STATE        218
+
+
 
 #define GRAY_LEVEL      0.93	// Background of % charge display
 #define REDLEVEL        10		// below this level battery charge display is red
@@ -63,7 +68,6 @@ GtkWidget *MainWindow;
 guint global_timeout_ref;
 int first;
 GtkStatusIcon* statusIcon;
-FILE *battskript;
 FILE *logFile;
 
 int last_capacity, last_state, last_time;
@@ -98,39 +102,70 @@ static gboolean timer_event(GtkWidget *widget)
 	
 	int capacity, time;
 	char *sstatus;
+	int response, wattage;
 	
 	int chargingState;
 	char battdata[2048];
+	
+	void *context;
+    void *requester;
+    
+    int connect_to_requester()
+    {
+        // printf ("Attemping to connect to request server…\n");
+	    context = zmq_ctx_new ();
+	    requester = zmq_socket (context, ZMQ_REQ);
+        if (zmq_connect (requester, "tcp://127.0.0.1:3782")) {
+	        printf("Unable to connect to pi-top Device Manager Request Server\n");
+	        return 1;
+        }
+        else {
+	        return 0;
+        }
+    }
+
+    void tidyup()
+    {
+        zmq_close (requester);
+        zmq_ctx_destroy (context);
+    }
+    
+    int getdata()
+    {
+        char buffer [100];
+        memset(&buffer[0], 0, sizeof(buffer));
+        zmq_send (requester, REQ_GET_BATTERY_STATE, 3, 0);
+        zmq_recv (requester, buffer, 100, 0);
+        sscanf(buffer, "%d|%d|%d|%d|%d", &response, &chargingState, &capacity, &time, &wattage);
+        if (response == RSP_GET_BATTERY_STATE) {
+            return 0;
+        }
+        else {
+            printf("No proper response received from request server\n");
+	    return 1;
+        }
+    }
 	
 	// stop timer in case of tc_loop taking too long
 	
 	g_source_remove(global_timeout_ref);
 	
-	// run /usr/bin/pt-battery and extract current charge and state from output
-	
-	battskript = popen("/usr/bin/pt-battery","r");
-	if (battskript == NULL) {
-		printf("Failed to run pt-battery\n");
-		exit (1);
-	}
-	
 	chargingState = -1;
 	capacity = -1;
 	time = -1;
 
-    while (fgets(battdata, 2047, battskript) != NULL) {
-		sscanf(battdata,"Charging State: %d", &chargingState);
-		sscanf(battdata,"Capacity:%d", &capacity);
-		sscanf(battdata,"Time Remaining:%d", &time);
+	// connect to request server and get information
+	
+	if (connect_to_requester() == 0) {
+		getdata();
+		tidyup();
 	}
 		
 	// printf("Charging State: %d, ", chargingState);
-	// printf("Capacity: %d, ", capacity);
+	// printf("Capacity: %d\n", capacity);
     
 	if ((capacity > 100) || (capacity < 0))
 		capacity = -1;              // capacity out of limits
-
-	pclose(battskript);
 	
 	
 	// check whether state or capacity has changed
@@ -280,17 +315,6 @@ int main(int argc, char *argv[])
 	}
 	else
 		logFile = stdout;
-	
-	// check whether pt-battery can be executed
-	
-	battskript = popen("/usr/bin/pt-battery","r");
-	if (battskript == NULL) {
-		printf("Failed to run /usr/bin/pt-battery\n");
-		fprintf(logFile,"Failed to run /usr/bin/pt-battery\n");
-		exit (1);
-	}
-	else		
-		pclose(battskript);
 		
 	// get lxpanel icon size
 	iconSize = -1;
