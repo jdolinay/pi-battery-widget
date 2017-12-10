@@ -14,11 +14,11 @@ pkill pi-top-battery- 2>/dev/null
 [ ! -d ~/bin  ] && mkdir ~/bin
 
 #make sure that files are executable
-chmod +x pi-top-battery-widget
+chmod +x pi-top-battery-widget1
 
 #copy necessary files to ~/bin
 cp battery_icon.png ~/bin
-cp pi-top-battery-widget ~/bin
+cp pi-top-battery-widget1 ~/bin/pi-top-battery-widget
 
 # add line to lxsession autostart, if it does not already exist
 if ! grep -q "pi-top-battery-widget" ~/.config/lxsession/LXDE-pi/autostart

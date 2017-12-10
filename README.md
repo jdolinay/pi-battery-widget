@@ -62,6 +62,17 @@ Open a terminal and type the following
   cd Downloads
   git clone --depth 1 git://github.com/rricharz/pi-top-battery-widget
   cd pi-top-battery-widget
+```
+The standard version of pi-top-battery-widget is optimized to minimize CPU usage, but
+requires the installation of a few libraries and the compilation of the widget on your system.
+This is all done automatically by the *install* script. If you prefer to install a version,
+which uses a bit more CPU time, but does not install any additional libraries and not compile on your system,
+type now:
+```
+cd version-using-pt-battery
+```
+For both versions, install now with the following commands:
+```
   chmod +x install
   ./install 
 ```
