@@ -63,15 +63,12 @@ Open a terminal and type the following
   git clone --depth 1 git://github.com/rricharz/pi-top-battery-widget
   cd pi-top-battery-widget
 ```
-The standard version of pi-top-battery-widget is optimized to minimize CPU usage, but
-requires the installation of a few libraries and the compilation of the widget on your system.
-This is all done automatically by the *install* script. If you prefer to install a version,
-which uses a bit more CPU time, but does not install any additional libraries and not compile on your system,
-type now:
+The following step is only required, if you want to install pi-top-battery-widget
+on pi-topOS or Raspbian Jessie. Skip this step if you are using Raspbian Stretch.
 ```
-cd version-using-pt-battery
+cd version-for-jessie
 ```
-For both versions, install now with the following commands:
+Finally install the widget with the following commands:
 ```
   chmod +x install
   ./install 
@@ -88,6 +85,14 @@ Open a terminal and type
   cd
   cd Downloads/pi-top-battery-widget
   git pull
+```
+The following step is only required, if you want to update pi-top-battery-widget
+on pi-topOS or Raspbian Jessie. Skip this step if you are using Raspbian Stretch.
+```
+cd version-for-jessie
+```
+Now install the updated widget
+```
   chmod +x install
   ./install
 ```

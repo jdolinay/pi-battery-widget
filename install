@@ -13,11 +13,6 @@ pkill pi-top-battery- 2>/dev/null
 # create bin directory in ~, if it does not exist
 [ ! -d ~/bin  ] && mkdir ~/bin
 
-#need to recompile to work on Jessie and Stretch
-sudo apt install -y libgtk-3-dev
-touch pi-top-battery-widget.c
-make
-
 #make sure that files are executable
 chmod +x pi-top-battery-widget
 
