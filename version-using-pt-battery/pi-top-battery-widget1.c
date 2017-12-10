@@ -118,7 +118,7 @@ static gboolean timer_event(GtkWidget *widget)
 	capacity = -1;
 	time = -1;
 
-    while (fgets(battdata, 2047, battskript) != NULL) {
+    	while (fgets(battdata, 2047, battskript) != NULL) {
 		sscanf(battdata,"Charging State: %d", &chargingState);
 		sscanf(battdata,"Capacity:%d", &capacity);
 		sscanf(battdata,"Time Remaining:%d", &time);
@@ -181,6 +181,13 @@ static gboolean timer_event(GtkWidget *widget)
 	
 	if (width != iconSize) {
 		double scaleFactor = (double) iconSize / (double) width;
+		if (iconSize >= 39) {
+			double scaleFactor = (double) (iconSize - 3) / (double) width;
+			cairo_translate(cr, 0.0, 3.0);
+		}
+		else {
+			double scaleFactor = (double) iconSize / (double) width;
+		}
 		cairo_scale(cr, scaleFactor,scaleFactor);
 	}
 	
@@ -331,11 +338,17 @@ int main(int argc, char *argv[])
 	
 	cr = cairo_create (surface);
 	
-	
 	// scale surface, if necessary
 	
 	if (width != iconSize) {
 		double scaleFactor = (double) iconSize / (double) width;
+		if (iconSize >= 39) {
+			double scaleFactor = (double) (iconSize - 3) / (double) width;
+			cairo_translate(cr, 0.0, 3.0);
+		}
+		else {
+			double scaleFactor = (double) iconSize / (double) width;
+		}
 		cairo_scale(cr, scaleFactor,scaleFactor);
 	}
 	

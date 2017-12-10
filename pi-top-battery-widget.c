@@ -216,6 +216,13 @@ static gboolean timer_event(GtkWidget *widget)
 	
 	if (width != iconSize) {
 		double scaleFactor = (double) iconSize / (double) width;
+		if (iconSize >= 39) {
+			double scaleFactor = (double) (iconSize - 3) / (double) width;
+			cairo_translate(cr, 0.0, 3.0);
+		}
+		else {
+			double scaleFactor = (double) iconSize / (double) width;
+		}
 		cairo_scale(cr, scaleFactor,scaleFactor);
 	}
 	
@@ -360,6 +367,13 @@ int main(int argc, char *argv[])
 	
 	if (width != iconSize) {
 		double scaleFactor = (double) iconSize / (double) width;
+		if (iconSize >= 39) {
+			double scaleFactor = (double) (iconSize - 3) / (double) width;
+			cairo_translate(cr, 0.0, 3.0);
+		}
+		else {
+			double scaleFactor = (double) iconSize / (double) width;
+		}
 		cairo_scale(cr, scaleFactor,scaleFactor);
 	}
 	
