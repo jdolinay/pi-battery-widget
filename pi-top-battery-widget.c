@@ -175,14 +175,16 @@ static gboolean timer_event(GtkWidget *widget)
 		return TRUE;		
 	}
 	
-	sstatus = "unknown";
+	sstatus = "no battery";
 	if (chargingState == 0)
 		sstatus = "discharging";
 	else if (chargingState == 1)
 		sstatus = "charging";
+	else if (chargingState == 2)
+		sstatus = "externally powered";
 		
 	// prepare tooltip
-	sprintf(timeStr, "pi-top-battery-widget");
+	sprintf(timeStr, "%s", sstatus);
 	if (strcmp(sstatus,"charging") == 0) {
 		if ((time > 0) && (time < 1000)) {
 			if (time <= 90) {
