@@ -238,7 +238,7 @@ static gboolean timer_event(GtkWidget *widget)
 		cairo_set_source_rgb (cr, 1, 1, 0);
 	else if (capacity <= REDLEVEL)
 		cairo_set_source_rgb (cr, 1, 0, 0);
-	else if (strcmp(sstatus,"external power") == 0)  // currently not used
+	else if (strcmp(sstatus,"externally powered") == 0)
 	    cairo_set_source_rgb (cr, 0.5, 0.5, 0.7);
 	else
 		cairo_set_source_rgb (cr, 0, 1, 0);
