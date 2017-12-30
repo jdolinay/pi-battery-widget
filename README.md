@@ -110,7 +110,7 @@ Open a terminal and type
 ```
 
 
-*What to do if bluetooth does not work after installing pt-pulse**
+**What to do if bluetooth does not work after installing pt-pulse**
 
 See the workaround at the bottom of [pi-topPULSE](https://github.com/pi-top/pi-topPULSE).
 
