@@ -46,6 +46,10 @@ Time Remaining: 590
 Wattage: 0
 ```
 
+If pt-battery does not work properly (it constantly displays 50% due to a bug), you need to check
+i2c and spi in Menu->Preferences->Raspberry Pi Configuration. On the pi-top version 1, i2c and spi
+need to be turned on, whereas on the pi-top version 2 turning spi on is sufficient.
+
 If you have been using
 [pi-top-battery-status](http://github.com/rricharz/pi-top-battery-status) before,
 you should uninstall it. See the instructions to uninstall that program in the description
