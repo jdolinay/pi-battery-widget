@@ -11,11 +11,12 @@ battery is charging.
 
 ![Alt text](icon.png?raw=true "panel with battery widget")
 
->Starting with the latest upgrade of Raspian Stretch (December 1, 2017) a battery icon
->should be automatically installed and enabled on the pi-top rev 1.
+>Starting with the latest upgrade of Raspian Stretch (January 30, 2018) a battery icon
+>should be automatically installed and enabled on the pi-top laptop (both versions).
 >The apt package *lxplug-ptbatt* is part of the apt package *raspberry-pi-ui-mods*.
 >If this battery icon shows up on your pi-top, installation of the battery widget in this
->repository is not required anymore.
+>repository is not required anymore. It will only show up if pt-hub is installed (see below)
+>and i2c is enabled.
 
 If you want to use this battery widget with Raspian Stretch, you first need to make sure
 that the latest pi-top software for the pi-top hardware is installed. More
