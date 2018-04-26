@@ -11,7 +11,8 @@ battery is charging.
 
 ![Alt text](icon.png?raw=true "panel with battery widget")
 
->Starting with the latest upgrade of Raspian Stretch (January 30, 2018) a battery icon
+>Starting with the latest upgrade of Raspian Stretch (January 30, 2018) 
+>and the latest version of pi-topOS (April 3, 2018) a battery icon
 >should be automatically installed and enabled on the pi-top laptop (both versions).
 >The apt package *lxplug-ptbatt* is part of the apt package *raspberry-pi-ui-mods*.
 >If this battery icon shows up on your pi-top, installation of the battery widget in this
@@ -69,7 +70,7 @@ Open a terminal and type the following
   cd pi-top-battery-widget
 ```
 The following step is only required, if you want to install pi-top-battery-widget
-on pi-topOS or Raspbian Jessie. Skip this step if you are using Raspbian Stretch.
+on a legacy version of pi-topOS or Raspbian Jessie. Skip this step if you are using Raspbian Stretch.
 ```
 cd version-for-jessie
 ```
