@@ -16,7 +16,7 @@ battery is charging.
 >should be automatically installed and enabled on the pi-top laptop (both versions).
 >The apt package *lxplug-ptbatt* is part of the apt package *raspberry-pi-ui-mods*.
 >If this battery icon shows up on your pi-top, installation of the battery widget in this
->repository is not required anymore. It will only show up if pt-hub is installed (see below)
+>repository is not required anymore. It will only show up if pt-device-manager is installed (see below)
 >and i2c is enabled.
 
 If you want to use this battery widget with Raspian Stretch, you first need to make sure
@@ -28,7 +28,7 @@ On pi-topOS you can skip this step. Open a terminal and type
 ```
 sudo apt update
 sudo apt upgrade
-sudo apt install pt-hub
+sudo apt install pt-device-manager
 ```
 
 Now you can check whether pt-battery works properly on your pi-top.
