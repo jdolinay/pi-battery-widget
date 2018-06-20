@@ -8,7 +8,7 @@ Instead reading the battery info directly in the c code, I choose using pi-batte
 adapted from UPS-18650 sample code. This way make others much easier to using their own method to read 
 battery info from other method(e.g I2C,SPI,USB,UART).
 
-The C code whihc execute python code to read battery values.
+The C code which execute python code to read battery values.
 Python code out put format is 
 ```
 voltage(float) | capacity(int) | chargingState(int) 
