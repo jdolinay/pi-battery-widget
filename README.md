@@ -6,8 +6,8 @@ in the System Tray section.
 battery is charging.
 - The time remaining is displayed as a tooltip
 - The display is updated every 5 seconds
-- Can be installed in pi-topOS and Raspbian Stretch
 - Logs all activities in ~/batteryLog.txt
+- Actuall battery reading code is done in python script, you can swap the script to read differet value
 
 ![Alt text](icon.png?raw=true "panel with battery widget")
 
