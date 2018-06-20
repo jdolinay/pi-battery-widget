@@ -5,7 +5,6 @@ import smbus
 import sys
 import time
 
-
 def readVoltage(bus):
 
         "This function returns as float the voltage from the Raspi UPS Hat via the provided SMBus object"
@@ -27,5 +26,5 @@ def readCapacity(bus):
 
 bus = smbus.SMBus(1)  # 0 = /dev/i2c-0 (port I2C0), 1 = /dev/i2c-1 (port I2C1)
 
-print "%5.2f|%i" %(readVoltage(bus) ,(readCapacity(bus)+1))
+print "%5.2f|%d" %(readVoltage(bus) ,(readCapacity(bus)+1))
 

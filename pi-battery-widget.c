@@ -107,8 +107,6 @@ int exec(const char* cmd,char* buffer){
 
 }
 
-
-
 void printLogEntry(int capacity, char* state, char* timeStr) {
 	time_t rawtime;
 	struct tm *timeinfo;
