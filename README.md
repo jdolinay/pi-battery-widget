@@ -93,6 +93,7 @@ or problem with this repository. Your input is appreciated.
 
 
 **Reference**
-https://github.com/linshuqin329/UPS-18650
-https://github.com/rricharz/pi-top-battery-widget
+
+https://github.com/linshuqin329/UPS-18650  
+https://github.com/rricharz/pi-top-battery-widget  
 
