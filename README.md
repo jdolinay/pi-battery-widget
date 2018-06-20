@@ -1,5 +1,25 @@
 # pi-battery-widget
 
+I was looking a way to display battery icon with my Chinese 18650 battery pack.
+I found pi-top-battery-widget is what I am looking for. So I fork the code and adapted to display
+the UPS-18650 using I2C reading.
+
+Instead reading the battery info directly in the c code, I choose using pi-battery-reader.py which I 
+adapted from UPS-18650 sample code. This way make others much easier to using their own method to read 
+battery info from other method(e.g I2C,SPI,USB,UART).
+
+The C code whihc execute python code to read battery values.
+Python code out put format is 
+```
+voltage(float) | capacity(int) | chargingState(int) 
+
+5.2 | 89 | 1
+```
+chargingState = 0 is "discharging"
+chargingState = 1 is "charging"
+chargingState = 2 is "AC or Externally Powered "
+ 
+
 - Displays a battery widget on the desktop panel of the general Raspberry LXDE at the right side
 in the System Tray section.
 - The green bar turns red if the battery charge left is below 10%, and yellow if the
@@ -10,6 +30,8 @@ battery is charging.
 - Actuall battery reading code is done in python script, you can swap the script to read differet value
 
 ![Alt text](icon.png?raw=true "panel with battery widget")
+
+![Alt text](UPS-18650.png?raw=true "Chinese 18650 battery Pi UPS")
 
 
 
