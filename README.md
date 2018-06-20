@@ -31,7 +31,7 @@ battery is charging.
 
 ![Alt text](icon.png?raw=true "panel with battery widget")
 
-![Alt text](UPS-18650.png?raw=true "Chinese 18650 battery Pi UPS")
+![Alt text](UPS-18650.png "Chinese 18650 battery Pi UPS" =100x)
 
 
 
@@ -84,3 +84,9 @@ Open a terminal and type
 
 Please open an issue in this repository or write to mezlxx@gmail.com if you have any feedback
 or problem with this repository. Your input is appreciated.
+
+
+**Reference**
+https://github.com/linshuqin329/UPS-18650
+https://github.com/rricharz/pi-top-battery-widget
+
