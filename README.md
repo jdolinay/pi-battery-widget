@@ -15,11 +15,13 @@ voltage(float) | capacity(int) | chargingState(int)
 
 5.2 | 89 | 1
 ```
-chargingState = 0 is "discharging"
-chargingState = 1 is "charging"
-chargingState = 2 is "AC or Externally Powered "
+chargingState = 0 is "discharging"  
+chargingState = 1 is "charging"  
+chargingState = 2 is "AC or Externally Powered "  
  
 
+
+**Features**
 - Displays a battery widget on the desktop panel of the general Raspberry LXDE at the right side
 in the System Tray section.
 - The green bar turns red if the battery charge left is below 10%, and yellow if the
@@ -31,7 +33,11 @@ battery is charging.
 
 ![Alt text](icon.png?raw=true "panel with battery widget")
 
-![Alt text](UPS-18650.png "Chinese 18650 battery Pi UPS" =100x)
+<img src="UPS-18650.png" width="50%"  alt="Chinese 18650 battery Pi UPS">
+Chinese 18650 battery Pi UPS
+
+
+
 
 
 
