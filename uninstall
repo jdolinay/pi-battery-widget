@@ -1,14 +1,15 @@
 #!/bin/bash
-# Uninstall p-top-battery-widget
+# Uninstall pi-battery-widget
 
-# kill running pi-top-battery-widget command
-pkill pi-top-battery-
+# kill running pi-battery-widget command
+pkill pi-battery-
 
 #remove files from ~/bin
 rm ~/bin/battery_icon.png
-rm ~/bin/pi-top-battery-widget
+rm ~/bin/pi-battery-widget
+rm ~/bin/pi-battery-reader.py
 
 # remove line from lxsession autostart
-cd ~/.config/lxsession/LXDE-pi/
-grep -v "pi-top-battery-widget" ./autostart > temp
+cd ~/.config/lxsession/Lubuntu/
+grep -v "pi-battery-widget" ./autostart > temp
 mv temp autostart

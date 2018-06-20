@@ -1,11 +1,10 @@
 /*
-
- * pi-top-battery-widget.c
+ * pi-battery-widget.c
  * 
- * display pi-top battery status
- * uses /usr/bin/pt-battery to get battery charge information
+ * display raspberry pi battery status
+ * gets information from the I2C(another python script)
  *
- * Copyright 2016, 2017  rricharz <rricharz77@gmail.com>
+ * Copyright 2018  Chin-Kai Chang <mezlxx@gmail.com>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -28,12 +27,11 @@
  * Uses deprecated functions
  *   gtk_status_icon_new_from_pixbuf
  *   gtk_status_icon_set_from_pixbuf
+ *   gtk_status_icon_set_tooltip_text(
  * 
  * Must be installed at ~/bin, loads battery_icon.png from there
  * 
  */
-
-
 
 #include <time.h>
 #include <stdio.h>
@@ -47,6 +45,22 @@
 #define GDK_DISABLE_DEPRECATION_WARNINGS
 #include <gtk/gtk.h>
 #include <gdk-pixbuf/gdk-pixbuf.h>
+#include <wiringPiI2C.h>
+
+
+//#include <iostream>
+//#include <stdexcept>
+//#include <stdio.h>
+//#include <string>
+#include <stdio.h>
+#include <stdlib.h>
+
+
+
+#define REQ_GET_BATTERY_STATE        "118"
+#define RSP_GET_BATTERY_STATE        218
+
+
 
 #define GRAY_LEVEL      0.93	// Background of % charge display
 #define REDLEVEL        10		// below this level battery charge display is red
@@ -63,12 +77,37 @@ GtkWidget *MainWindow;
 guint global_timeout_ref;
 int first;
 GtkStatusIcon* statusIcon;
-FILE *battskript;
 FILE *logFile;
 
 int last_capacity, last_state, last_time;
 
 int iconSize;
+
+int exec(const char* cmd,char* buffer){
+  FILE *fp;
+
+  /* Open the command for reading. */
+  fp = popen(cmd, "r");
+  if (fp == NULL) {
+    printf("Failed to run command\n" );
+    exit(1);
+  }
+
+    char s[255];
+  /* Read the output a line at a time - output it. */
+  while (fgets(s, sizeof(s)-1, fp) != NULL) {
+    //printf("RAW[%s]", s);
+    strcpy(buffer, s);
+  }
+
+  /* close */
+  pclose(fp);
+
+  return 0;
+
+}
+
+
 
 void printLogEntry(int capacity, char* state, char* timeStr) {
 	time_t rawtime;
@@ -97,40 +136,54 @@ static gboolean timer_event(GtkWidget *widget)
 	char timeStr[255];
 	
 	int capacity, time;
+        float voltage;
 	char *sstatus;
+	int response, wattage;
 	
 	int chargingState;
 	char battdata[2048];
+	
+    
+    int getdata()
+    {
+	const char *homedir = getpwuid(getuid())->pw_dir;	
+	char s[255];
+	strcpy(s, homedir);
+	strcat(s, "/bin/pi-battery-reader.py" );
+        char buffer [256];
+        exec (s,buffer); 
+        sscanf(buffer, "%f|%i",&voltage, &capacity);
+        response = RSP_GET_BATTERY_STATE;
+        chargingState = 0;
+        wattage = 1;
+
+        if (response == RSP_GET_BATTERY_STATE) {
+            //printf("Raw reading [%s]",buffer);
+            //printf("Got Voltage %5.2f Capacity %5d %%\n",voltage,capacity);
+            return 0;
+        }
+        else {
+            printf("No proper response received from request server\n");
+	    return 1;
+        }
+    }
 	
 	// stop timer in case of tc_loop taking too long
 	
 	g_source_remove(global_timeout_ref);
 	
-	// run /usr/bin/pt-battery and extract current charge and state from output
-	
-	battskript = popen("/usr/bin/pt-battery","r");
-	if (battskript == NULL) {
-		printf("Failed to run pt-battery\n");
-		exit (1);
-	}
-	
 	chargingState = -1;
 	capacity = -1;
 	time = -1;
 
-    	while (fgets(battdata, 2047, battskript) != NULL) {
-		sscanf(battdata,"Charging State: %d", &chargingState);
-		sscanf(battdata,"Capacity:%d", &capacity);
-		sscanf(battdata,"Time Remaining:%d", &time);
-	}
+	// run script to get information
+        getdata();
 		
 	// printf("Charging State: %d, ", chargingState);
-	// printf("Capacity: %d, ", capacity);
+	// printf("Capacity: %d\n", capacity);
     
 	if ((capacity > 100) || (capacity < 0))
 		capacity = -1;              // capacity out of limits
-
-	pclose(battskript);
 	
 	
 	// check whether state or capacity has changed
@@ -285,26 +338,15 @@ int main(int argc, char *argv[])
 		strcat(s, "/batteryLog.txt" );
 		// printf("s = %s\n",s);
 		logFile = fopen(s,"a");
-		fprintf(logFile, "Starting pi-top-battery-widget\n");
+		fprintf(logFile, "Starting pi-battery-widget\n");
 	}
 	else
 		logFile = stdout;
-	
-	// check whether pt-battery can be executed
-	
-	battskript = popen("/usr/bin/pt-battery","r");
-	if (battskript == NULL) {
-		printf("Failed to run /usr/bin/pt-battery\n");
-		fprintf(logFile,"Failed to run /usr/bin/pt-battery\n");
-		exit (1);
-	}
-	else		
-		pclose(battskript);
 		
 	// get lxpanel icon size
 	iconSize = -1;
 	strcpy(s, homedir);
-	strcat(s, "/.config/lxpanel/LXDE-pi/panels/panel");
+	strcat(s, "/.config/lxpanel/Lubuntu/panels/panel");
 	FILE* lxpanel = fopen(s, "r");
 	if (lxpanel == NULL) {
 		printf("Failed to open lxpanel config file %s\n", s);
@@ -339,6 +381,7 @@ int main(int argc, char *argv[])
 	g_assert (surface != NULL);
 	
 	cr = cairo_create (surface);
+	
 	
 	// scale surface, if necessary
 	
