@@ -25,6 +25,7 @@ def readCapacity(bus):
 
 
 bus = smbus.SMBus(1)  # 0 = /dev/i2c-0 (port I2C0), 1 = /dev/i2c-1 (port I2C1)
-
-print "%5.2f|%d" %(readVoltage(bus) ,(readCapacity(bus)+1))
+chargingState = 0 #TODO
+wattage = 0.0 #TODO
+print "%7.5f|%d|%d|%5.2f" %(readVoltage(bus) ,(readCapacity(bus)+1),chargingState,wattage)
 
