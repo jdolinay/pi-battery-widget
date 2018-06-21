@@ -61,7 +61,7 @@
 #define INTERVAL		5000	// msec between two updates
 
 #define MAKELOG         1     // log file batteryLog in home directory (0 = no log file)
-#define MAX_CHARGED_VOLTAGE 4.2
+#define MAX_CHARGED_VOLTAGE 4.18000 //4.21625
 #define CUTOFF_VOLTAGE 2.4
 
 //for rough charge/discharge time estimation
@@ -352,17 +352,17 @@ static gboolean timer_event(GtkWidget *widget)
     else
         w = (99 * capacity) / 400;
     if (strcmp(sstatus,"charging") == 0)
-        cairo_set_source_rgb (cr, 1, 1, 0);
+        cairo_set_source_rgb (cr, 1, 1, 0);//Yellow
     else if (capacity <= REDLEVEL)
-        cairo_set_source_rgb (cr, 1, 0, 0);
+        cairo_set_source_rgb (cr, 1, 0, 0); //RED
     else if (strcmp(sstatus,"externally powered") == 0)
-        cairo_set_source_rgb (cr, 0.5, 0.5, 0.7);
+        cairo_set_source_rgb (cr, 0.5, 0.5, 0.7);//GRAY
     else
-        cairo_set_source_rgb (cr, 0, 1, 0);
+        cairo_set_source_rgb (cr, 0, 1, 0);//Green
     cairo_rectangle (cr, 5, 4, w, 12);
     cairo_fill (cr);
     if (w < 23) {
-        cairo_set_source_rgb (cr, 1, 1, 1);
+        cairo_set_source_rgb (cr, 1, 1, 1);//White
         cairo_rectangle (cr, 5 + w, 4, 24 - w, 12);
         cairo_fill (cr);
     }
@@ -372,7 +372,7 @@ static gboolean timer_event(GtkWidget *widget)
     cairo_set_source_rgb (cr, GRAY_LEVEL, GRAY_LEVEL, GRAY_LEVEL);
     cairo_rectangle (cr, 0, 20, 35, 15);
     cairo_fill (cr);  
-    cairo_set_source_rgb (cr, 0, 0, 0);
+    cairo_set_source_rgb (cr, 0, 0, 0);//BLACK
     cairo_select_font_face(cr, "Dosis", CAIRO_FONT_SLANT_NORMAL, CAIRO_FONT_WEIGHT_NORMAL);
     cairo_set_font_size(cr, 12);
     if (capacity >= 0) {
