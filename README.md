@@ -48,8 +48,19 @@ Open a terminal and type the following
 ```
   cd
   cd Downloads
-  git clone --depth 1 git://github.com/mezl/pi-battery-widget
+  git clone https://github.com/mezl/pi-battery-widget.git
   cd pi-battery-widget
+```
+
+Make sure GTK3.0 library is installed:
+```
+sudo apt install libgtk-3-dev
+```
+
+
+Compile the code with the following commands:
+```
+  make
 ```
 
 Finally install the widget with the following commands:
@@ -69,6 +80,7 @@ Open a terminal and type
   cd
   cd Downloads/pi-battery-widget
   git pull
+  make
 ```
 Now install the updated widget
 ```

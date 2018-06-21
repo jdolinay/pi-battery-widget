@@ -64,12 +64,12 @@
 #define MAX_CHARGED_VOLTAGE 4.2
 #define CUTOFF_VOLTAGE 2.4
 
-//for rough charge/dischare time estimation
+//for rough charge/discharge time estimation
 #define CELL_CAPACITY 3400 //mAh
 #define CELL_NUMS 2
 #define TOTAL_CAPACITY CELL_CAPACITY*CELL_NUMS
-#define CHARGING_CURRENT 500 //ma
-#define DISCHARGING_CURRENT 1000 //ma
+#define CHARGING_CURRENT 500 //mA
+#define DISCHARGING_CURRENT 1000 //mA
 #define DEBUG TRUE 
 
 const int TOTAL_CHARGE_TIME = TOTAL_CAPACITY * 60 / CHARGING_CURRENT; //816 min
