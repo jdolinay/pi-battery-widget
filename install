@@ -24,7 +24,7 @@ cp pi-battery-reader.py ~/bin
 cp redreactor.conf ~/.config/lxpanel/LXDE-pi/panels/redreactor.conf
 
 # add line to lxsession autostart, if it does not already exist
-if ! grep -q "pi-battery-widget" ~/.config/lxsession/Lubuntu/autostart
+if ! grep -q "pi-battery-widget" ~/.config/lxpanel/LXDE-pi/panels/autostart
 then
     cp ~/.config/lxpanel/LXDE-pi/panels/autostart ./lxsession_autostart_backup
     echo "@pi-battery-widget > /dev/null &" >> ~/.config/lxpanel/LXDE-pi/panels/autostart
