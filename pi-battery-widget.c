@@ -1,10 +1,11 @@
 /*
  * pi-battery-widget.c
  * 
- * display raspberry pi battery status
+ * display raspberry pi Red Reactor battery status on task bar
  * gets information from the I2C(another python script)
  *
- * Copyright 2018  Chin-Kai Chang <mezlxx@gmail.com>
+ * Derived from https://github.com/mezl/pi-battery-widget
+ * All changes Copyright 2022 Pascal Herczog <hello@theredreactor.com>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -31,6 +32,7 @@
  * 
  * Must be installed at ~/bin, loads battery_icon.png from there
  * Must be installed at ~/bin, loads pi-battery-reader.py from there
+ * Reads the ~/.config/lxpanel/LXDE-pi/panels/redreactor.conf file if exists
  * 
  */
 
@@ -54,26 +56,22 @@
 #include <stdlib.h>
 
 
-
-
 #define GRAY_LEVEL      0.93	// Background of % charge display
 #define REDLEVEL        10		// below this level battery charge display is red
 #define INTERVAL		5000	// msec between two updates
 
-#define MAKELOG         1     // log file batteryLog in home directory (0 = no log file)
-#define MAX_CHARGED_VOLTAGE 4.18000 //4.21625
-#define CUTOFF_VOLTAGE 2.4
+#define MAKELOG         1	// log file batteryLog in home directory (0 = no log file)
 
-//for rough charge/discharge time estimation
-#define CELL_CAPACITY 3400 //mAh
-#define CELL_NUMS 2
-#define TOTAL_CAPACITY CELL_CAPACITY*CELL_NUMS
-#define CHARGING_CURRENT 500 //mA
-#define DISCHARGING_CURRENT 1000 //mA
+#define BATTERY_VMAX 4.2
+#define BATTERY_OVER 0.02	// Capacity offset while charging
+#define BATTERY_UNDER 0.05	// Capacity offset while not charging
+#define BATTERY_VMIN 2.9
+
+//Reference for measured data
+#define DEFAULT_CAPACITY 6000 //mAh
+
+//Set to FALSE for general use
 #define DEBUG TRUE 
-
-const int TOTAL_CHARGE_TIME = TOTAL_CAPACITY * 60 / CHARGING_CURRENT; //816 min
-const int TOTAL_DISCHARGE_TIME = TOTAL_CAPACITY * 60 / DISCHARGING_CURRENT; //408 min
 
 enum State{NO_BATT = -1,DISCHARGE = 0,CHARGE = 1, EXT_PWR = 2};
 cairo_surface_t *surface;
@@ -91,6 +89,10 @@ int last_capacity, last_state, last_time;
 double last_voltage;
 double start_time; 
 struct timespec resolution;
+
+double v_one, v_two, v_three, v_average;
+double a_one, a_two, a_three, a_average;
+int batSize = DEFAULT_CAPACITY;
 
 int iconSize;
 
@@ -124,7 +126,7 @@ int exec(const char* cmd,char* buffer){
     }
 
     char s[255];
-    /* Read the output a line at a time - output it. */
+    /* Read the output a line at a time - Keep last line */
     while (fgets(s, sizeof(s)-1, fp) != NULL) {
         //printf("RAW[%s]", s);
         strcpy(buffer, s);
@@ -151,7 +153,7 @@ void printLogEntry(int capacity, char* state, char* timeStr,double voltage) {
     fprintf(logFile, ", Capacity: %3d%%", capacity);
 
     fprintf(logFile, ", %s, %s", state, timeStr);
-    fprintf(logFile, ",voltage %7.5fV\n",voltage);
+    fprintf(logFile, ", voltage %7.5fV\n",voltage);
     fflush(logFile);
 }
 
@@ -166,9 +168,10 @@ static gboolean timer_event(GtkWidget *widget)
 
     int capacity, time;
     double voltage;
+    float current;
+	
     char *sstatus;
-    int response; 
-    float wattage;
+    int response;
 
     int chargingState;
     char battdata[2048];
@@ -182,78 +185,148 @@ static gboolean timer_event(GtkWidget *widget)
         strcat(s, "/bin/pi-battery-reader.py" );
         char buffer [256];
         float vv;
-        exec (s,buffer); 
-        sscanf(buffer, "%f|%i|%d|%f",&vv, &capacity,&chargingState,&wattage);
-        response = 1;
-        voltage = (double)vv;
-        if(last_voltage < 0)last_voltage = voltage;
+        
+		// Get RedReactor data
+		response = 0;
+		exec (s,buffer); 
+        sscanf(buffer, "%f|%f",&vv, &current);
+		voltage = (double)vv;
+        
+		// Process RedReactor data to calculate states
+		if ((0 < current) && (current < 10)){
+            // Charged, running of MAINS
+			chargingState = EXT_PWR;
+		}
+        else if (current < 0){
+            // Charging battery, so set positive
+            current = -current;
+			chargingState = CHARGE;
+		} else {
+			chargingState = DISCHARGE;
+		}
+		
+		// Check valid data
+		if (current < 10000){
+			response = 1;
+		} else {
+			current = 0;
+			voltage = 0;
+			chargingState = NO_BATT;
+		}
+        
+		// Perform averaging to avoid spikes
+        if(last_voltage < 0){
+			last_voltage = voltage;
+			v_one = voltage;
+			v_two = voltage;
+			v_three = voltage;
+			v_average = voltage;
+			a_one = current;
+			a_two = current;
+			a_three = current;
+			a_average = current;
+		}else{
+			v_average = (voltage + v_one + v_two + v_three) / 4;
+			v_three = v_two;
+			v_two = v_one;
+			v_one = voltage;
+			a_average = (current + a_one + a_two + a_three) / 4;
+			a_three = a_two;
+			a_two = a_one;
+			a_one = current;
+		}
+		if (current < 0){
+            capacity = (v_average - BATTERY_VMIN) / (BATTERY_VMAX + BATTERY_OVER - BATTERY_VMIN) * 100;
+		}
+        else {
+            capacity = (v_average - BATTERY_VMIN) / (BATTERY_VMAX - BATTERY_UNDER - BATTERY_VMIN) * 100;
+		}
+		if (voltage > 4.25){
+			chargingState = NO_BATT;
+			current = 0;
+			capacity = 0;
+		}
+		
+		// If battery voltage allowed to go below VMIN, stay at 0%
+        if (capacity < 0) capacity = 0;
+		if (capacity > 100) capacity = 100;
 
-        chargingState = last_state;//overwrite from python reading
-        //using voltage to determine the chargingState
-        if(voltage <= 0.0){
-            chargingState = NO_BATT; //no battery
-            printf("No BATT:");
-        } else if (last_voltage > voltage){
-            chargingState = DISCHARGE; //discharging
+		// Define battery specs, scaled by capacity
+		float charge_model[6][3] = {
+			{2.400, 3.000, 600 * batSize/DEFAULT_CAPACITY},
+			{3.000, 3.352, 550 * batSize/DEFAULT_CAPACITY},
+			{3.352, 3.464, 620 * batSize/DEFAULT_CAPACITY},
+			{3.464, 3.548, 1270 * batSize/DEFAULT_CAPACITY},
+			{3.548, 4.132, 16840 * batSize/DEFAULT_CAPACITY},
+			{4.132, 4.212, 8590 * batSize/DEFAULT_CAPACITY}
+		};
+		float discharge_model[4][4] = {
+			{2.9, 2.992, 520 * batSize/DEFAULT_CAPACITY, 1453.1},
+			{2.992, 3.324, 2450 * batSize/DEFAULT_CAPACITY, 1330.2},
+			{3.324, 3.868, 10610 * batSize/DEFAULT_CAPACITY, 1152.4},
+			{3.868, 4.2, 4160 * batSize/DEFAULT_CAPACITY, 1057.8}
+		};
+		
+		int i;
 
-            double voltage_diff = (last_voltage - voltage);
-            printf("\nV: %f, Vlast: %f",voltage,last_voltage);
-            printf("Vd %f\n",voltage_diff);
+        // enum State{NO_BATT = -1,DISCHARGE = 0,CHARGE = 1, EXT_PWR = 2};
+        if(chargingState == NO_BATT){
+            // chargingState = NO_BATT; //no battery
+            if(DEBUG && 1) printf("No BATT - Mains:");
+        } else if (chargingState == DISCHARGE){
+			
+			// calculate remaining discharge time in minutes for tooltip, using averaged voltage/current
+			
+			float drain_time = 0.0;
+			
+			// Use size of array
+			for (i = 0; i < 4; ++i) {
+				if(v_average >= discharge_model[i][1]){
+					drain_time += discharge_model[i][2] * discharge_model[i][3] / a_average;
+				} else if (v_average < discharge_model[i][0]){
+					// don't use this curve
+					// printf("Skipping");
+				} else{
+					drain_time += ((v_average - discharge_model[i][0]) / (discharge_model[i][1] - discharge_model[i][0])) * discharge_model[i][2] * discharge_model[i][3] / a_average;
+				}
+			}
+				
+			// Displayed in minutes
+			time = (int)drain_time/60;
+			if(DEBUG && 1) printf("Discharging - Time Left: %d min, Vd: %f, mA: %f\n",time,v_average,a_average);
 
-            double diff2 = timer_me(TRUE);
-            printf("Time: %f, Vd: %f\n",diff2,voltage_diff);
 
-            int time1 = TOTAL_CHARGE_TIME*(100-capacity)/100;//TODO , this only assume 500mAh charge current 
+        }else if(chargingState == CHARGE){
 
-            double remaining_voltage = voltage - CUTOFF_VOLTAGE;
-            double remaining_time = (remaining_voltage / voltage_diff) * diff2 /60;
-            int time2 = (int)remaining_time; //in minute
-
-            printf("M1: %d min, M2: %d min\n",time1,time2);
-
-            time = time2; //use method 2 to estimate time
-
-            printf("Discharging:");
-
-        }else if(last_voltage < voltage){
-            chargingState = CHARGE; //charging
-
-            double voltage_diff = (voltage- last_voltage);
-
-            printf("\nV: %f, Vlast: %f",voltage,last_voltage);
-            printf("Vd %f\n",voltage_diff);
-            
-            double diff2 = timer_me(TRUE);
-            printf("Time: %f, Vd: %f\n",diff2,voltage_diff);
-
-            //constant current method
-            int time1 = TOTAL_DISCHARGE_TIME * capacity/100 ;//TODO, this only assume 1A discharge current 
-            
-            //voltage drop method
-            //since we know it taks 52 sec to increase 0.00125V
-            double remaining_voltage = MAX_CHARGED_VOLTAGE - voltage;
-            double remaining_time = (remaining_voltage / voltage_diff) * diff2 /60.0;
-            int time2 = (int)remaining_time; // in minutes
-            printf("M1: %d min, M2: %d min\n",time1,time2); 
-
-            time = time2; //use method 2 to estimate time
-            printf("Charging:");
+			// calculate remaining charging time in minutes for tooltip, using averaged voltage
+			
+			float charge_time = 0.0;
+			
+			// Use size of array
+			for (i = 0; i < 6; ++i) {
+				if(v_average >= charge_model[i][1]){
+					// don't use this curve
+					// printf("Skipping");
+				} else if (v_average <= charge_model[i][0]){
+					// Add this charge curve
+					charge_time += charge_model[i][2];
+				} else{
+					charge_time += ((charge_model[i][1] - v_average) / (charge_model[i][1] - charge_model[i][0])) * charge_model[i][2];
+				}
+			}
+				
+			// Displayed in minutes (+1 as clearly not yet finished if <1)
+			time = (int)charge_time/60 + 1;
+			if(DEBUG && 1) printf("Charging - Time Left: %d min, Vd: %f, mA: %f\n",time,v_average,a_average);
 
         }else{
-            if(voltage >= MAX_CHARGED_VOLTAGE){
-                chargingState = EXT_PWR;//externally powered and fully charged
-                printf("EXT_PWR:");
+            if(chargingState == EXT_PWR){
+                if(DEBUG && 1) printf("EXT_PWR - Battery FULL at %7.3f\n", voltage);
             }
 
-
-            //double diff2 = timer_me(FALSE);
-            //printf("\nTimer: %f\n",diff2);
-
-            printf("Default:");
             time = last_time;
         }
 
-        printf("Remaining time is %d min,voltage %7.5fV\n",time,voltage);
 
         if (response == 1) {
             //printf("Raw reading [%s]",buffer);
@@ -277,18 +350,17 @@ static gboolean timer_event(GtkWidget *widget)
     // run script to get information
     getdata();
 
-    // printf("Charging State: %d, ", chargingState);
-    // printf("Capacity: %d\n", capacity);
+	if(DEBUG && 1) printf("RedReactor: V=%f, mA=%f, capacity=%d%%, status=%d\n", voltage, current, capacity, chargingState);
 
     if ((capacity > 100) || (capacity < 0))
         capacity = -1;              // capacity out of limits
 
 
-    // check whether state or capacity has changed
-    if ((last_state == chargingState) && (last_capacity == capacity) && (last_voltage == voltage)) {
+    // Only if external power, same state and voltage as last then no update needed
+    if ((chargingState == last_state) && (chargingState == EXT_PWR) && (voltage == last_voltage)) {
         // restart timer and return without updating icon
         global_timeout_ref = g_timeout_add(INTERVAL, (GSourceFunc) timer_event, (gpointer) MainWindow);	
-        if(DEBUG && 0) printf("state does not change, no update\n");
+        if(DEBUG && 1) printf("state does not change, no update\n");
         return TRUE;		
     }
 
@@ -305,27 +377,32 @@ static gboolean timer_event(GtkWidget *widget)
     if (strcmp(sstatus,"charging") == 0) {
         if ((time > 0) && (time < 1000)) {
             if (time <= 90) {
-                sprintf(timeStr, "Charging time: %d minutes", time);
+                sprintf(timeStr, "Charging time: %d minutes\nV=%.2f, mA=%.0f", time, v_average, a_average);
             }
             else {
-                sprintf(timeStr, "Charging time: %.1f hours", (float)time / 60.0);  
+                sprintf(timeStr, "Charging time: %.1f hours\nV=%.2f, mA=%.0f", (float)time / 60.0, v_average, a_average);  
             }
         }
     }
     else if (strcmp(sstatus,"discharging") == 0) {
         if ((time > 0) && (time < 1000)) {
             if (time <= 90) {
-                sprintf(timeStr, "Time remaining: %d minutes", time);
+                sprintf(timeStr, "Time remaining: %d minutes\nV=%.2f, mA=%.0f", time, v_average, a_average);
             }
             else {
-                sprintf(timeStr, "Time remaining: %.1f hours", (double)time / 60.0);  
+                sprintf(timeStr, "Time remaining: %.1f hours\nV=%.2f, mA=%.0f", (double)time / 60.0, v_average, a_average);  
             }
-        } 
+        }
     }
+	else {
+		if (strcmp(sstatus,"externally powered") == 0) {
+            sprintf(timeStr, "Fully Charged\nVoltage = %.2f", v_average);
+        }
+	}
 
     // update log
 
-    printLogEntry(capacity, sstatus, timeStr,voltage);
+    printLogEntry(capacity, sstatus, timeStr, voltage);
 
     // create a drawing surface
 
@@ -356,9 +433,11 @@ static gboolean timer_event(GtkWidget *widget)
     else if (capacity <= REDLEVEL)
         cairo_set_source_rgb (cr, 1, 0, 0); //RED
     else if (strcmp(sstatus,"externally powered") == 0)
+		cairo_set_source_rgb (cr, 0, 1, 0);//Green
+    else if (strcmp(sstatus,"no battery") == 0)
+		cairo_set_source_rgb (cr, 0, 0, 0);//Black
+	else
         cairo_set_source_rgb (cr, 0.5, 0.5, 0.7);//GRAY
-    else
-        cairo_set_source_rgb (cr, 0, 1, 0);//Green
     cairo_rectangle (cr, 5, 4, w, 12);
     cairo_fill (cr);
     if (w < 23) {
@@ -436,33 +515,41 @@ int main(int argc, char *argv[])
     char s[255];
     if (MAKELOG) {
         strcpy(s, homedir);
-        strcat(s, "/batteryLog.txt" );
-        // printf("s = %s\n",s);
-        logFile = fopen(s,"a");
-        fprintf(logFile, "Starting pi-battery-widget\n");
+        strcat(s, "/RedReactor_batteryLog.txt" );
+		// Avoid logfile getting too big with daily use
+        logFile = fopen(s,"w");
+        fprintf(logFile, "Starting Red Reactor pi-battery-widget\n");
     }
     else
         logFile = stdout;
 
-    // get lxpanel icon size
+    // get LXDE panel icon size
     iconSize = -1;
     strcpy(s, homedir);
-    strcat(s, "/.config/lxpanel/Lubuntu/panels/panel");
+    strcat(s, "/.config/lxpanel/LXDE-pi/panels/redreactor.conf");
     FILE* lxpanel = fopen(s, "r");
     if (lxpanel == NULL) {
-        printf("Failed to open lxpanel config file %s\n", s);
-        fprintf(logFile,"Failed to open lxpanel config file %s\n", s);
+        printf("Failed to open LXDE panel config file %s\n", s);
+        fprintf(logFile,"Failed to open LXDE panel config file %s\n", s);
     }
     else {
         char lxpaneldata[2048];
-        while ((fgets(lxpaneldata, 2047, lxpanel) != NULL) && (iconSize == -1)) {
-            sscanf(lxpaneldata,"  iconsize=%d", &iconSize);
+        while ((fgets(lxpaneldata, 2047, lxpanel) != NULL)) {
+            sscanf(lxpaneldata,"iconsize=%d", &iconSize);
+			sscanf(lxpaneldata,"capacity=%d", &batSize);
         }
         fclose(lxpanel);
     }
     if (iconSize == -1)    // default
         iconSize = 36;
-    // printf("lxpanel iconSize = %d\n", iconSize);
+	
+	// Check for sensible capacity, cannot be less than 1000mAh
+	if ((batSize < 1000) || (batSize > 10000)){
+		printf("Failed to obtain valid battery capacity: %dmAh, changing to default %d\n", batSize, DEFAULT_CAPACITY);
+        fprintf(logFile,"Failed to obtain valid battery capacity: %dmAh, changing to default %d\n", batSize, DEFAULT_CAPACITY);
+		batSize = DEFAULT_CAPACITY;
+	}
+    fprintf(logFile, "Config Data: Icon Size=%d, Capacity=%dmAh\n", iconSize, batSize);
 
     // create the drawing surface and fill with icon
 

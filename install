@@ -20,13 +20,15 @@ chmod +x pi-battery-widget
 cp battery_icon.png ~/bin
 cp pi-battery-widget ~/bin
 cp pi-battery-reader.py ~/bin
+#copy config file
+cp redreactor.conf ~/.config/lxpanel/LXDE-pi/panels/redreactor.conf
 
 # add line to lxsession autostart, if it does not already exist
 if ! grep -q "pi-battery-widget" ~/.config/lxsession/Lubuntu/autostart
 then
-    cp ~/.config/lxsession/Lubuntu/autostart ./lxsession_autostart_backup
-    echo "@pi-battery-widget > /dev/null &" >> ~/.config/lxsession/Lubuntu/autostart
+    cp ~/.config/lxpanel/LXDE-pi/panels/autostart ./lxsession_autostart_backup
+    echo "@pi-battery-widget > /dev/null &" >> ~/.config/lxpanel/LXDE-pi/panels/autostart
 fi
 
-#restart gtk_battery in background making sure that it lives on if calling console is closed
+#restart pi-battery-widget in background making sure that it lives on if calling console is closed
 nohup ~/bin/pi-battery-widget > /dev/null 2>/dev/null &

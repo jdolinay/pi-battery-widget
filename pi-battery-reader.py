@@ -1,31 +1,53 @@
-#!/usr/bin/python
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
 
-import struct
-import smbus
-import sys
-import time
+"""
+*** RED REACTOR - Copyright (c) 2022
+*** Author: Pascal Herczog
 
-def readVoltage(bus):
+*** This code is designed for the RED REACTOR Raspberry Pi Battery Power Supply
+*** Example code provided without warranty
+*** Provides Voltage and Current readings to Battery Icon
 
-        "This function returns as float the voltage from the Raspi UPS Hat via the provided SMBus object"
-        address = 0x36
-        read = bus.read_word_data(address, 2)
-        swapped = struct.unpack("<H", struct.pack(">H", read))[0]
-        voltage = swapped * 1.25 /1000/16
-        return voltage
-
-
-def readCapacity(bus):
-        "This function returns as a float the remaining capacity of the battery connected to the Raspi UPS Hat via the provided SMBus object"
-        address = 0x36
-        read = bus.read_word_data(address, 4)
-        swapped = struct.unpack("<H", struct.pack(">H", read))[0]
-        capacity = swapped/256
-        return capacity
+*** Filename: pi-battery-reader.py
+*** PythonVn: 3.8, 32-bit
+*** Date: January 2022
+"""
+from ina219 import INA219  # This controls the battery monitoring IC
+from ina219 import DeviceRangeError  # Handle reading errors
 
 
-bus = smbus.SMBus(1)  # 0 = /dev/i2c-0 (port I2C0), 1 = /dev/i2c-1 (port I2C1)
-chargingState = 0 #TODO
-wattage = 0.0 #TODO
-print "%7.5f|%d|%d|%5.2f" %(readVoltage(bus) ,(readCapacity(bus)+1),chargingState,wattage)
+# Constants
+# RED REACTOR I2C address
+I2C_ADDRESS = 0x40
 
+# RED REACTOR Measurement Shunt (defined in Ohms)
+SHUNT_OHMS = 0.05
+
+# Set Current Measurement Range
+MAX_EXPECTED_AMPS = 5.5
+
+# ADC Default
+# ADC*12BIT: 12 bit, conversion time 532us (default).
+
+# Verify that RED REACTOR is attached, else return defaults
+try:
+    bat_reader = INA219(SHUNT_OHMS, MAX_EXPECTED_AMPS)
+    bat_reader.configure(bat_reader.RANGE_16V)
+
+    voltage = bat_reader.voltage()
+    current = bat_reader.current()
+except DeviceRangeError as e:
+    # Current out of range for the RedReactor
+    voltage = 4.5
+    current = 6000.0
+
+except OSError:
+    """RED REACTOR IS NOT Attached, returning defaults"""
+    # 0v means No Red Reactor fitted
+    print("0.000|0.00")
+    exit(1)
+
+finally:
+    # Read by sscanf(buffer, "%f|%f",&vv, &current);
+    print("{:.3f}|{:.2f}".format(voltage, current))
