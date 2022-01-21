@@ -27,6 +27,9 @@ SHUNT_OHMS = 0.05
 # Set Current Measurement Range
 MAX_EXPECTED_AMPS = 5.5
 
+voltage = 0.0
+current = 0.0
+
 # ADC Default
 # ADC*12BIT: 12 bit, conversion time 532us (default).
 
