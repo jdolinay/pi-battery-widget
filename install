@@ -16,19 +16,45 @@ pkill pi-battery- 2>/dev/null
 #make sure that files are executable
 chmod +x pi-battery-widget
 
-#copy necessary files to ~/bin
+# copy necessary files to ~/bin
 cp battery_icon.png ~/bin
 cp pi-battery-widget ~/bin
 cp pi-battery-reader.py ~/bin
-#copy config file
-cp redreactor.conf ~/.config/lxpanel/LXDE-pi/panels/redreactor.conf
 
-# add line to lxsession autostart, if it does not already exist
-if ! grep -q "pi-battery-widget" ~/.config/lxpanel/LXDE-pi/panels/autostart
-then
-    cp ~/.config/lxpanel/LXDE-pi/panels/autostart ./lxsession_autostart_backup
-    echo "@pi-battery-widget > /dev/null &" >> ~/.config/lxpanel/LXDE-pi/panels/autostart
+# copy config file
+cp redreactor.conf ~/.config/lxpanel/LXDE-pi/panels/redreactor.conf
+echo "**********************************************************"
+echo "Please check config file capacity value matches your setup"
+echo "~/.config/lxpanel/LXDE-pi/panels/redreactor.conf"
+cat ~/.config/lxpanel/LXDE-pi/panels/redreactor.conf
+echo "**********************************************************"
+
+AUTOSTART=~/.config/lxsession/LXDE-pi/autostart
+SYSTEMSTART=/etc/xdg/lxsession/LXDE-pi/autostart
+# check if user has own autostart file
+if [ ! -f $AUTOSTART ]; then
+	echo "Copying system autostart into user account"
+	# check if target folder exists
+	if [ ! -d ~/.config/lxsession ]; then
+		mkdir ~/.config/lxsession
+	fi
+	if [ ! -d ~/.config/lxsession/LXDE-pi ]; then
+		mkdir ~/.config/lxsession/LXDE-pi
+	fi
+	cp $SYSTEMSTART $AUTOSTART
+fi
+if [ -f $AUTOSTART ]; then
+	echo "Updating user's" $AUTOSTART "file"
+	# add line to lxsession autostart, if it does not already exist
+	if ! grep -q "pi-battery-widget" $AUTOSTART
+	then
+		cp $AUTOSTART ./autostart.bck
+		echo "@pi-battery-widget > /dev/null &" >> $AUTOSTART
+	fi
+else
+	echo "Failed to create/update user's autostart file in" $AUTOSTART
 fi
 
 #restart pi-battery-widget in background making sure that it lives on if calling console is closed
+echo "Starting the Red Reactor Battery Widget..."
 nohup ~/bin/pi-battery-widget > /dev/null 2>/dev/null &
