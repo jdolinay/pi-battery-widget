@@ -46,7 +46,7 @@ Open a terminal and type the following
 ```
   cd
   cd Downloads
-  git clone https://github.com/mezl/pi-battery-widget.git
+  git clone https://github.com/Scally-H/pi-battery-widget
   cd pi-battery-widget
 ```
 
