@@ -13,7 +13,7 @@ voltage(float) | current(float)
 
 4.2 | 1088.9
 ```
-chargingState = -1 is "no battery"
+chargingState = -1 is "no battery"   
 chargingState = 0 is "discharging"  
 chargingState = 1 is "charging"  
 chargingState = 2 is "AC or Externally Powered "  
