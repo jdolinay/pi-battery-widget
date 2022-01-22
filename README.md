@@ -8,13 +8,13 @@ Please visit https://github.com/Scally-H/RedReactor for more technical details a
 Please visit https://www.theredreactor.com for Info, News and Updates on our Kickstarter Launch!
 
 The C code executes the python code to configure and the read the battery voltage and current via
-the INA219 I2C device.
+the INA219 I2C device, also allowing for the detection of charging, charging complete and no battery states.
 
 Python code output format is 
 ```
 voltage(float) | current(float) 
 
-4.2 | 1088.9
+4.142 | 1088.98
 ```
 
 **Features**
@@ -25,11 +25,11 @@ battery is charging.
 - The time remaining is displayed as a tooltip
 - The display is updated every 5 seconds
 - Logs all activities in ~/RedReactor_batteryLog.txt
- - Shows instant and averaged readings, battery life and status
- - chargingState = -1 is "no battery"
- - chargingState = 0 is "discharging"
- - chargingState = 1 is "charging"
- - chargingState = 2 is "AC or Externally Powered "  
+- Log File shows instant and averaged readings, battery life and status
+   chargingState = -1 is "no battery"
+   chargingState = 0 is "discharging"
+   chargingState = 1 is "charging"
+   chargingState = 2 is "AC or Externally Powered "  
  
 - Actuall battery reading code is done in python script based on The Red Reactor configuration
 
