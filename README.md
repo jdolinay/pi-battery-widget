@@ -4,6 +4,9 @@ This code has been forked from the pi-battery-widget status icon widget, with ma
 to support The Red Reactor Raspberry Pi UPS, including accurate battery life modelling for charging
 and discharging profiles.
 
+Please visit https://github.com/Scally-H/RedReactor for more technical details and code examples.
+Please visit https://www.theredreactor.com for Info, News and Updates on our Kickstarter Launch!
+
 The C code executes the python code to configure and the read the battery voltage and current via
 the INA219 I2C device.
 
