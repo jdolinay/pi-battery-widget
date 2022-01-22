@@ -111,8 +111,8 @@ or problem with this repository. Your input is appreciated.
 
 **Reference**
 
-https://wwww.theredreactor.com
-https://github.com/Scally-H/RedReactor
+https://wwww.theredreactor.com  
+https://github.com/Scally-H/RedReactor  
 https://github.com/linshuqin329/UPS-18650  
 https://github.com/rricharz/pi-top-battery-widget  
 
