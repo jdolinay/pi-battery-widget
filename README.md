@@ -23,7 +23,7 @@ voltage(float) | current(float)
 in the System Tray section.
 - The green bar turns red if the battery charge left is below 10%, and yellow if the
 battery is charging.
-- The time remaining is displayed as a tooltip
+- The time remaining is displayed as a tooltip (both for charging and discharging!)
 - The display is updated every 5 seconds
 - Logs all activities in ~/RedReactor_batteryLog.txt
 - Log File shows instant and averaged readings, battery life and status
@@ -32,7 +32,7 @@ battery is charging.
    chargingState = 1 is "charging"
    chargingState = 2 is "AC or Externally Powered "  
  
-- Actuall battery reading code is done in python script based on The Red Reactor configuration
+- Actual battery reading code is done in python script based on The Red Reactor configuration
 
 ![Alt text](icon.png?raw=true "panel with battery widget")
 
@@ -67,6 +67,12 @@ Finally install the widget with the following commands:
   chmod +x install
   ./install 
 ```
+
+Please check the install script output for errors. It has been tested on Raspberry Pi with Buster,
+and creates or updates the ~/.config/lxsession/LXDE-pi/autostart file.
+
+Please adjust your chosen battery capacity by editing ~/.config/lxpanel/LXDE-pi/panels/redreactor.conf
+(given in mAh for total capacity)
 
 Reboot your pi.
 
@@ -105,6 +111,8 @@ or problem with this repository. Your input is appreciated.
 
 **Reference**
 
+https://wwww.theredreactor.com
+https://github.com/Scally-H/RedReactor
 https://github.com/linshuqin329/UPS-18650  
 https://github.com/rricharz/pi-top-battery-widget  
 
