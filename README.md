@@ -13,12 +13,6 @@ voltage(float) | current(float)
 
 4.2 | 1088.9
 ```
-chargingState = -1 is "no battery"   
-chargingState = 0 is "discharging"  
-chargingState = 1 is "charging"  
-chargingState = 2 is "AC or Externally Powered "  
- 
-
 
 **Features**
 - Displays a battery widget on the desktop panel of the general Raspberry LXDE at the right side
@@ -28,6 +22,12 @@ battery is charging.
 - The time remaining is displayed as a tooltip
 - The display is updated every 5 seconds
 - Logs all activities in ~/RedReactor_batteryLog.txt
+ - Shows instant and averaged readings, battery life and status
+ - chargingState = -1 is "no battery"
+ - chargingState = 0 is "discharging"
+ - chargingState = 1 is "charging"
+ - chargingState = 2 is "AC or Externally Powered "  
+ 
 - Actuall battery reading code is done in python script based on The Red Reactor configuration
 
 ![Alt text](icon.png?raw=true "panel with battery widget")
