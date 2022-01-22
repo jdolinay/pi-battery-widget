@@ -1,11 +1,13 @@
 # pi-battery-widget
 
 This code has been forked from the pi-battery-widget status icon widget, with major design changes
-to support The Red Reactor Raspberry Pi UPS, including accurate battery modelling for charging and
-discharging profiles.
+to support The Red Reactor Raspberry Pi UPS, including accurate battery life modelling for charging
+and discharging profiles.
 
-The C code which execute python code to read battery values.
-Python code out put format is 
+The C code executes the python code to configure and the read the battery voltage and current via
+the INA219 I2C device.
+
+Python code output format is 
 ```
 voltage(float) | current(float) 
 
@@ -26,16 +28,12 @@ battery is charging.
 - The time remaining is displayed as a tooltip
 - The display is updated every 5 seconds
 - Logs all activities in ~/RedReactor_batteryLog.txt
-- Actuall battery reading code is done in python script based on the Red Reactor configuration
+- Actuall battery reading code is done in python script based on The Red Reactor configuration
 
 ![Alt text](icon.png?raw=true "panel with battery widget")
 
-<img src="UPS-18650.png" width="50%"  alt="The Red Reactor Raspberry Pi 18650 UPS">
 The Red Reactor UPS for Raspberry Pi zero, Pi Model 2/3 and Pi Model 4!
-
-
-
-
+<img src="UPS-18650.png" width="50%"  alt="The Red Reactor Raspberry Pi 18650 UPS">
 
 
 **Installation**
