@@ -1,20 +1,17 @@
 # pi-battery-widget
 
-I was looking a way to display battery icon with my Chinese 18650 battery pack.
-I found pi-top-battery-widget is what I am looking for. So I fork the code and adapted to display
-the UPS-18650 using I2C reading.
-
-Instead reading the battery info directly in the c code, I choose using pi-battery-reader.py which I 
-adapted from UPS-18650 sample code. This way make others much easier to using their own method to read 
-battery info from other method(e.g I2C,SPI,USB,UART).
+This code has been forked from the pi-battery-widget status icon widget, with major design changes
+to support The Red Reactor Raspberry Pi UPS, including accurate battery modelling for charging and
+discharging profiles.
 
 The C code which execute python code to read battery values.
 Python code out put format is 
 ```
-voltage(float) | capacity(int) | chargingState(int) 
+voltage(float) | current(float) 
 
-5.2 | 89 | 1
+4.2 | 1088.9
 ```
+chargingState = -1 is "no battery"
 chargingState = 0 is "discharging"  
 chargingState = 1 is "charging"  
 chargingState = 2 is "AC or Externally Powered "  
@@ -28,13 +25,13 @@ in the System Tray section.
 battery is charging.
 - The time remaining is displayed as a tooltip
 - The display is updated every 5 seconds
-- Logs all activities in ~/batteryLog.txt
-- Actuall battery reading code is done in python script, you can swap the script to read differet value
+- Logs all activities in ~/RedReactor_batteryLog.txt
+- Actuall battery reading code is done in python script based on the Red Reactor configuration
 
 ![Alt text](icon.png?raw=true "panel with battery widget")
 
-<img src="UPS-18650.png" width="50%"  alt="Chinese 18650 battery Pi UPS">
-Chinese 18650 battery Pi UPS
+<img src="UPS-18650.png" width="50%"  alt="The Red Reactor Raspberry Pi 18650 UPS">
+The Red Reactor UPS for Raspberry Pi zero, Pi Model 2/3 and Pi Model 4!
 
 
 
@@ -100,7 +97,7 @@ Open a terminal and type
   ./uninstall
 ```
 
-Please open an issue in this repository or write to mezlxx@gmail.com if you have any feedback
+Please open an issue in this repository or write to hello@theredreactor if you have any feedback
 or problem with this repository. Your input is appreciated.
 
 
