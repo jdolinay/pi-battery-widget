@@ -1,11 +1,12 @@
 /*
  * pi-battery-widget.c
  * 
- * display raspberry pi Red Reactor battery status on task bar
+ * The Red Reactor raspberry pi battery status icon on task bar
  * gets information from the I2C(another python script)
  *
+ * Copyright 2022 Pascal Herczog <hello@theredreactor.com>
+ * Copyright 2018  Chin-Kai Chang <mezlxx@gmail.com>
  * Derived from https://github.com/mezl/pi-battery-widget
- * All changes Copyright 2022 Pascal Herczog <hello@theredreactor.com>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -198,9 +199,9 @@ static gboolean timer_event(GtkWidget *widget)
 			chargingState = EXT_PWR;
 		}
         else if (current < 0){
-            // Charging battery, so set positive
-            current = -current;
 			chargingState = CHARGE;
+			// Charging battery, but need positive for sums
+            current = -current;
 		} else {
 			chargingState = DISCHARGE;
 		}
@@ -235,10 +236,11 @@ static gboolean timer_event(GtkWidget *widget)
 			a_two = a_one;
 			a_one = current;
 		}
-		if (current < 0){
+		if (chargingState == CHARGE){
             capacity = (v_average - BATTERY_VMIN) / (BATTERY_VMAX + BATTERY_OVER - BATTERY_VMIN) * 100;
 		}
         else {
+			// Use for Full, Discharge and No Bat
             capacity = (v_average - BATTERY_VMIN) / (BATTERY_VMAX - BATTERY_UNDER - BATTERY_VMIN) * 100;
 		}
 		if (voltage > 4.25){
