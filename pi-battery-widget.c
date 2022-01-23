@@ -72,7 +72,7 @@
 #define DEFAULT_CAPACITY 6000 //mAh
 
 //Set to FALSE for general use
-#define DEBUG TRUE 
+#define DEBUG FALSE 
 
 enum State{NO_BATT = -1,DISCHARGE = 0,CHARGE = 1, EXT_PWR = 2};
 cairo_surface_t *surface;
@@ -99,109 +99,109 @@ int iconSize;
 
 double timer_me(int reset)
 {
-    double current_time, elapsed_time;
+	double current_time, elapsed_time;
 
-    clock_gettime(CLOCK_MONOTONIC, &resolution);
-    current_time = (resolution.tv_sec) ;
+	clock_gettime(CLOCK_MONOTONIC, &resolution);
+	current_time = (resolution.tv_sec) ;
 
-    elapsed_time = current_time - start_time;
-    //if(elapsed_time < 0) {
-    //    elapsed_time = elapsed_time + 1000000; //in case clock_gettime wraps around
-    //}
-    //long ms = round(elapsed_time/ 1.0e6);
+	elapsed_time = current_time - start_time;
+	//if(elapsed_time < 0) {
+	//    elapsed_time = elapsed_time + 1000000; //in case clock_gettime wraps around
+	//}
+	//long ms = round(elapsed_time/ 1.0e6);
 
-    //if(reset) start_time = resolution.tv_nsec;
-    if(reset) start_time = (resolution.tv_sec);
+	//if(reset) start_time = resolution.tv_nsec;
+	if(reset) start_time = (resolution.tv_sec);
 
-    return elapsed_time;
+	return elapsed_time;
 
 }
 int exec(const char* cmd,char* buffer){
-    FILE *fp;
+	FILE *fp;
 
-    /* Open the command for reading. */
-    fp = popen(cmd, "r");
-    if (fp == NULL) {
-        printf("Failed to run command\n" );
-        exit(1);
-    }
+	/* Open the command for reading. */
+	fp = popen(cmd, "r");
+	if (fp == NULL) {
+		printf("Failed to run command\n" );
+		exit(1);
+	}
 
-    char s[255];
-    /* Read the output a line at a time - Keep last line */
-    while (fgets(s, sizeof(s)-1, fp) != NULL) {
-        //printf("RAW[%s]", s);
-        strcpy(buffer, s);
-    }
+	char s[255];
+	/* Read the output a line at a time - Keep last line */
+	while (fgets(s, sizeof(s)-1, fp) != NULL) {
+		//printf("RAW[%s]", s);
+		strcpy(buffer, s);
+	}
 
-    /* close */
-    pclose(fp);
+	/* close */
+	pclose(fp);
 
-    return 0;
+	return 0;
 
 }
 
 void printLogEntry(int capacity, char* state, char* timeStr,double voltage) {
-    time_t rawtime;
-    struct tm *timeinfo;
-    char timeString[80];
+	time_t rawtime;
+	struct tm *timeinfo;
+	char timeString[80];
 
-    time(&rawtime);
-    timeinfo = localtime(&rawtime);
-    strftime(timeString, 80, "%D %R:%S", timeinfo);
-    fprintf(logFile,"%s", timeString);
-    // printf("%s:  %s %d\n", timeString, s, i);
+	time(&rawtime);
+	timeinfo = localtime(&rawtime);
+	strftime(timeString, 80, "%D %R:%S", timeinfo);
+	fprintf(logFile,"%s", timeString);
+	// printf("%s:  %s %d\n", timeString, s, i);
 
-    fprintf(logFile, ", Capacity: %3d%%", capacity);
+	fprintf(logFile, ", Capacity: %3d%%", capacity);
 
-    fprintf(logFile, ", %s, %s", state, timeStr);
-    fprintf(logFile, ", voltage %7.5fV\n",voltage);
-    fflush(logFile);
+	fprintf(logFile, ", %s, %s", state, timeStr);
+	fprintf(logFile, ", voltage %7.5fV\n",voltage);
+	fflush(logFile);
 }
 
 // The following function is called every INTERVAL msec
 static gboolean timer_event(GtkWidget *widget)
 {
-    cairo_t *cr;
-    GdkPixbuf *new_pixbuf;
-    int w;
-    char str[255];
-    char timeStr[255];
+	cairo_t *cr;
+	GdkPixbuf *new_pixbuf;
+	int w;
+	char str[255];
+	char timeStr[255];
 
-    int capacity, time;
-    double voltage;
-    float current;
+	int capacity, time;
+	double voltage;
+	float current;
 	
-    char *sstatus;
-    int response;
+	char *sstatus;
+	int response;
 
-    int chargingState;
-    char battdata[2048];
+	int chargingState;
+	char battdata[2048];
 
 
-    int getdata()
-    {
-        const char *homedir = getpwuid(getuid())->pw_dir;	
-        char s[255];
-        strcpy(s, homedir);
-        strcat(s, "/bin/pi-battery-reader.py" );
-        char buffer [256];
-        float vv;
-        
+	int getdata()
+	{
+		const char *homedir = getpwuid(getuid())->pw_dir;	
+		char s[255];
+		strcpy(s, homedir);
+		strcat(s, "/bin/pi-battery-reader.py" );
+		char buffer [256];
+		float vv;
+		
 		// Get RedReactor data
 		response = 0;
-		exec (s,buffer); 
-        sscanf(buffer, "%f|%f",&vv, &current);
+		exec (s,buffer);
+		sscanf(buffer, "%f|%f",&vv, &current);
 		voltage = (double)vv;
-        
+		
 		// Process RedReactor data to calculate states
 		if ((0 < current) && (current < 10)){
-            // Charged, running of MAINS
+			// Charged, running of MAINS
 			chargingState = EXT_PWR;
 		}
-        else if (current < 0){
+		else if (current < 0){
 			chargingState = CHARGE;
 			// Charging battery, but need positive for sums
-            current = -current;
+			current = -current;
 		} else {
 			chargingState = DISCHARGE;
 		}
@@ -214,9 +214,9 @@ static gboolean timer_event(GtkWidget *widget)
 			voltage = 0;
 			chargingState = NO_BATT;
 		}
-        
+		
 		// Perform averaging to avoid spikes
-        if(last_voltage < 0){
+		if(last_voltage < 0){
 			last_voltage = voltage;
 			v_one = voltage;
 			v_two = voltage;
@@ -237,11 +237,11 @@ static gboolean timer_event(GtkWidget *widget)
 			a_one = current;
 		}
 		if (chargingState == CHARGE){
-            capacity = (v_average - BATTERY_VMIN) / (BATTERY_VMAX + BATTERY_OVER - BATTERY_VMIN) * 100;
+			capacity = (v_average - BATTERY_VMIN) / (BATTERY_VMAX + BATTERY_OVER - BATTERY_VMIN) * 100;
 		}
-        else {
+		else {
 			// Use for Full, Discharge and No Bat
-            capacity = (v_average - BATTERY_VMIN) / (BATTERY_VMAX - BATTERY_UNDER - BATTERY_VMIN) * 100;
+			capacity = (v_average - BATTERY_VMIN) / (BATTERY_VMAX - BATTERY_UNDER - BATTERY_VMIN) * 100;
 		}
 		if (voltage > 4.25){
 			chargingState = NO_BATT;
@@ -250,7 +250,7 @@ static gboolean timer_event(GtkWidget *widget)
 		}
 		
 		// If battery voltage allowed to go below VMIN, stay at 0%
-        if (capacity < 0) capacity = 0;
+		if (capacity < 0) capacity = 0;
 		if (capacity > 100) capacity = 100;
 
 		// Define battery specs, scaled by capacity
@@ -271,11 +271,11 @@ static gboolean timer_event(GtkWidget *widget)
 		
 		int i;
 
-        // enum State{NO_BATT = -1,DISCHARGE = 0,CHARGE = 1, EXT_PWR = 2};
-        if(chargingState == NO_BATT){
-            // chargingState = NO_BATT; //no battery
-            if(DEBUG && 1) printf("No BATT - Mains:");
-        } else if (chargingState == DISCHARGE){
+		// enum State{NO_BATT = -1,DISCHARGE = 0,CHARGE = 1, EXT_PWR = 2};
+		if(chargingState == NO_BATT){
+			// chargingState = NO_BATT; //no battery
+			if(DEBUG && 1) printf("No BATT - Mains:");
+		} else if (chargingState == DISCHARGE){
 			
 			// calculate remaining discharge time in minutes for tooltip, using averaged voltage/current
 			
@@ -298,7 +298,7 @@ static gboolean timer_event(GtkWidget *widget)
 			if(DEBUG && 1) printf("Discharging - Time Left: %d min, Vd: %f, mA: %f\n",time,v_average,a_average);
 
 
-        }else if(chargingState == CHARGE){
+		}else if(chargingState == CHARGE){
 
 			// calculate remaining charging time in minutes for tooltip, using averaged voltage
 			
@@ -321,291 +321,291 @@ static gboolean timer_event(GtkWidget *widget)
 			time = (int)charge_time/60 + 1;
 			if(DEBUG && 1) printf("Charging - Time Left: %d min, Vd: %f, mA: %f\n",time,v_average,a_average);
 
-        }else{
-            if(chargingState == EXT_PWR){
-                if(DEBUG && 1) printf("EXT_PWR - Battery FULL at %7.3f\n", voltage);
-            }
+		}else{
+			if(chargingState == EXT_PWR){
+				if(DEBUG && 1) printf("EXT_PWR - Battery FULL at %7.3f\n", voltage);
+			}
 
-            time = last_time;
-        }
+			time = last_time;
+		}
 
 
-        if (response == 1) {
-            //printf("Raw reading [%s]",buffer);
-            //printf("Got Voltage %7.5f Capacity %5d %%\n",voltage,capacity);
-            return 0;
-        }
-        else {
-            printf("No proper response received from script\n");
-            return 1;
-        }
-    }
+		if (response == 1) {
+			//printf("Raw reading [%s]",buffer);
+			//printf("Got Voltage %7.5f Capacity %5d %%\n",voltage,capacity);
+			return 0;
+		}
+		else {
+			printf("No proper response received from script\n");
+			return 1;
+		}
+	}
 
-    // stop timer in case of tc_loop taking too long
+	// stop timer in case of tc_loop taking too long
 
-    g_source_remove(global_timeout_ref);
+	g_source_remove(global_timeout_ref);
 
-    chargingState = NO_BATT;
-    capacity = -1;
-    time = -1;
+	chargingState = NO_BATT;
+	capacity = -1;
+	time = -1;
 
-    // run script to get information
-    getdata();
+	// run script to get information
+	getdata();
 
 	if(DEBUG && 1) printf("RedReactor: V=%f, mA=%f, capacity=%d%%, status=%d\n", voltage, current, capacity, chargingState);
 
-    if ((capacity > 100) || (capacity < 0))
-        capacity = -1;              // capacity out of limits
+	if ((capacity > 100) || (capacity < 0))
+		capacity = -1;              // capacity out of limits
 
 
-    // Only if external power, same state and voltage as last then no update needed
-    if ((chargingState == last_state) && (chargingState == EXT_PWR) && (voltage == last_voltage)) {
-        // restart timer and return without updating icon
-        global_timeout_ref = g_timeout_add(INTERVAL, (GSourceFunc) timer_event, (gpointer) MainWindow);	
-        if(DEBUG && 1) printf("state does not change, no update\n");
-        return TRUE;		
-    }
-
-    sstatus = "no battery";
-    if (chargingState == DISCHARGE)
-        sstatus = "discharging";
-    else if (chargingState == CHARGE)
-        sstatus = "charging";
-    else if (chargingState == EXT_PWR)
-        sstatus = "externally powered";
-
-    // prepare tooltip
-    sprintf(timeStr, "%s", sstatus);
-    if (strcmp(sstatus,"charging") == 0) {
-        if ((time > 0) && (time < 1000)) {
-            if (time <= 90) {
-                sprintf(timeStr, "Charging time: %d minutes\nV=%.2f, mA=%.0f", time, v_average, a_average);
-            }
-            else {
-                sprintf(timeStr, "Charging time: %.1f hours\nV=%.2f, mA=%.0f", (float)time / 60.0, v_average, a_average);  
-            }
-        }
-    }
-    else if (strcmp(sstatus,"discharging") == 0) {
-        if ((time > 0) && (time < 1000)) {
-            if (time <= 90) {
-                sprintf(timeStr, "Time remaining: %d minutes\nV=%.2f, mA=%.0f", time, v_average, a_average);
-            }
-            else {
-                sprintf(timeStr, "Time remaining: %.1f hours\nV=%.2f, mA=%.0f", (double)time / 60.0, v_average, a_average);  
-            }
-        }
-    }
-	else {
-		if (strcmp(sstatus,"externally powered") == 0) {
-            sprintf(timeStr, "Fully Charged\nVoltage = %.2f", v_average);
-        }
+	// Only if external power, same state and voltage as last then no update needed
+	if ((chargingState == last_state) && (chargingState == EXT_PWR) && (voltage == last_voltage)) {
+		// restart timer and return without updating icon
+		global_timeout_ref = g_timeout_add(INTERVAL, (GSourceFunc) timer_event, (gpointer) MainWindow);	
+		if(DEBUG && 1) printf("state does not change, no update\n");
+		return TRUE;		
 	}
 
-    // update log
+	sstatus = "no battery";
+	if (chargingState == DISCHARGE)
+		sstatus = "discharging";
+	else if (chargingState == CHARGE)
+		sstatus = "charging";
+	else if (chargingState == EXT_PWR)
+		sstatus = "externally powered";
 
-    printLogEntry(capacity, sstatus, timeStr, voltage);
+	// prepare tooltip
+	sprintf(timeStr, "%s", sstatus);
+	if (strcmp(sstatus,"charging") == 0) {
+		if ((time > 0) && (time < 1000)) {
+			if (time <= 90) {
+				sprintf(timeStr, "Charging time: %d minutes\nV=%.2f, mA=%.0f", time, v_average, a_average);
+			}
+			else {
+				sprintf(timeStr, "Charging time: %.1f hours\nV=%.2f, mA=%.0f", (float)time / 60.0, v_average, a_average);  
+			}
+		}
+	}
+	else if (strcmp(sstatus,"discharging") == 0) {
+		if ((time > 0) && (time < 1000)) {
+			if (time <= 90) {
+				sprintf(timeStr, "Time remaining: %d minutes\nV=%.2f, mA=%.0f", time, v_average, a_average);
+			}
+			else {
+				sprintf(timeStr, "Time remaining: %.1f hours\nV=%.2f, mA=%.0f", (double)time / 60.0, v_average, a_average);  
+			}
+		}
+	}
+	else {
+		if (strcmp(sstatus,"externally powered") == 0) {
+			sprintf(timeStr, "Fully Charged\nVoltage = %.2f", v_average);
+		}
+	}
 
-    // create a drawing surface
+	// update log
 
-    cr = cairo_create (surface);
+	printLogEntry(capacity, sstatus, timeStr, voltage);
 
-    // scale surface, if necessary
+	// create a drawing surface
 
-    if (width != iconSize) {
-        double scaleFactor = (double) iconSize / (double) width;
-        if (iconSize >= 39) {
-            double scaleFactor = (double) (iconSize - 3) / (double) width;
-            cairo_translate(cr, 0.0, 3.0);
-        }
-        else {
-            double scaleFactor = (double) iconSize / (double) width;
-        }
-        cairo_scale(cr, scaleFactor,scaleFactor);
-    }
+	cr = cairo_create (surface);
 
-    // fill the battery symbol with a colored bar
+	// scale surface, if necessary
 
-    if (capacity < 0)         // capacity out of limits
-        w = 0;
-    else
-        w = (99 * capacity) / 400;
-    if (strcmp(sstatus,"charging") == 0)
-        cairo_set_source_rgb (cr, 1, 1, 0);//Yellow
-    else if (capacity <= REDLEVEL)
-        cairo_set_source_rgb (cr, 1, 0, 0); //RED
-    else if (strcmp(sstatus,"externally powered") == 0)
+	if (width != iconSize) {
+		double scaleFactor = (double) iconSize / (double) width;
+		if (iconSize >= 39) {
+			double scaleFactor = (double) (iconSize - 3) / (double) width;
+			cairo_translate(cr, 0.0, 3.0);
+		}
+		else {
+			double scaleFactor = (double) iconSize / (double) width;
+		}
+		cairo_scale(cr, scaleFactor,scaleFactor);
+	}
+
+	// fill the battery symbol with a colored bar
+
+	if (capacity < 0)         // capacity out of limits
+		w = 0;
+	else
+		w = (99 * capacity) / 400;
+	if (strcmp(sstatus,"charging") == 0)
+		cairo_set_source_rgb (cr, 1, 1, 0);//Yellow
+	else if (capacity <= REDLEVEL)
+		cairo_set_source_rgb (cr, 1, 0, 0); //RED
+	else if (strcmp(sstatus,"externally powered") == 0)
 		cairo_set_source_rgb (cr, 0, 1, 0);//Green
-    else if (strcmp(sstatus,"no battery") == 0)
+	else if (strcmp(sstatus,"no battery") == 0)
 		cairo_set_source_rgb (cr, 0, 0, 0);//Black
 	else
-        cairo_set_source_rgb (cr, 0.5, 0.5, 0.7);//GRAY
-    cairo_rectangle (cr, 5, 4, w, 12);
-    cairo_fill (cr);
-    if (w < 23) {
-        cairo_set_source_rgb (cr, 1, 1, 1);//White
-        cairo_rectangle (cr, 5 + w, 4, 24 - w, 12);
-        cairo_fill (cr);
-    }
+		cairo_set_source_rgb (cr, 0.5, 0.5, 0.7);//GRAY
+	cairo_rectangle (cr, 5, 4, w, 12);
+	cairo_fill (cr);
+	if (w < 23) {
+		cairo_set_source_rgb (cr, 1, 1, 1);//White
+		cairo_rectangle (cr, 5 + w, 4, 24 - w, 12);
+		cairo_fill (cr);
+	}
 
-    // display the capacity figure
+	// display the capacity figure
 
-    cairo_set_source_rgb (cr, GRAY_LEVEL, GRAY_LEVEL, GRAY_LEVEL);
-    cairo_rectangle (cr, 0, 20, 35, 15);
-    cairo_fill (cr);  
-    cairo_set_source_rgb (cr, 0, 0, 0);//BLACK
-    cairo_select_font_face(cr, "Dosis", CAIRO_FONT_SLANT_NORMAL, CAIRO_FONT_WEIGHT_NORMAL);
-    cairo_set_font_size(cr, 12);
-    if (capacity >= 0) {
-        int x = 4;
-        if (capacity < 10)
-            x += 4;
-        else if (capacity > 99)
-            x -= 4;
-        cairo_move_to(cr, x, 33);
-        sprintf(str,"%2d%%",capacity);
-        cairo_show_text(cr, str);
-    }
+	cairo_set_source_rgb (cr, GRAY_LEVEL, GRAY_LEVEL, GRAY_LEVEL);
+	cairo_rectangle (cr, 0, 20, 35, 15);
+	cairo_fill (cr);  
+	cairo_set_source_rgb (cr, 0, 0, 0);//BLACK
+	cairo_select_font_face(cr, "Dosis", CAIRO_FONT_SLANT_NORMAL, CAIRO_FONT_WEIGHT_NORMAL);
+	cairo_set_font_size(cr, 12);
+	if (capacity >= 0) {
+		int x = 4;
+		if (capacity < 10)
+			x += 4;
+		else if (capacity > 99)
+			x -= 4;
+		cairo_move_to(cr, x, 33);
+		sprintf(str,"%2d%%",capacity);
+		cairo_show_text(cr, str);
+	}
 
-    // Create a new pixbuf from the modified surface and display icon
+	// Create a new pixbuf from the modified surface and display icon
 
-    new_pixbuf = gdk_pixbuf_get_from_surface(surface, 0, 0, iconSize, iconSize);
+	new_pixbuf = gdk_pixbuf_get_from_surface(surface, 0, 0, iconSize, iconSize);
 
-    if (first) {
-        statusIcon= gtk_status_icon_new_from_pixbuf(new_pixbuf);
-        first = FALSE;
-    }
-    else {
-        gtk_status_icon_set_from_pixbuf(statusIcon, new_pixbuf);
-    }
-    gtk_status_icon_set_tooltip_text(statusIcon, timeStr);
+	if (first) {
+		statusIcon= gtk_status_icon_new_from_pixbuf(new_pixbuf);
+		first = FALSE;
+	}
+	else {
+		gtk_status_icon_set_from_pixbuf(statusIcon, new_pixbuf);
+	}
+	gtk_status_icon_set_tooltip_text(statusIcon, timeStr);
 
-    g_object_unref(new_pixbuf);
-    cairo_destroy (cr);
+	g_object_unref(new_pixbuf);
+	cairo_destroy (cr);
 
-    last_capacity = capacity;
-    last_voltage = voltage;
-    last_state = chargingState;
-    last_time = time;
+	last_capacity = capacity;
+	last_voltage = voltage;
+	last_state = chargingState;
+	last_time = time;
 
-    // restart timer
+	// restart timer
 
-    global_timeout_ref = g_timeout_add(INTERVAL, (GSourceFunc) timer_event, (gpointer) MainWindow);
+	global_timeout_ref = g_timeout_add(INTERVAL, (GSourceFunc) timer_event, (gpointer) MainWindow);
 
-    return TRUE;
+	return TRUE;
 }
 
 // This function is called once at startup to initialize everything
 
 int main(int argc, char *argv[])
 {
-    GdkPixbuf *pixbuf, *new_pixbuf;
-    cairo_t *cr;
-    cairo_format_t format;
+	GdkPixbuf *pixbuf, *new_pixbuf;
+	cairo_t *cr;
+	cairo_format_t format;
 
-    first = TRUE;
-    last_capacity = -1;
-    last_voltage = -1.0;
-    last_state = -1;
-    last_time = -1;
+	first = TRUE;
+	last_capacity = -1;
+	last_voltage = -1.0;
+	last_state = -1;
+	last_time = -1;
 
-    gtk_init(&argc, &argv);
+	gtk_init(&argc, &argv);
 
-    // open log file
+	// open log file
 
-    const char *homedir = getpwuid(getuid())->pw_dir;	
-    char s[255];
-    if (MAKELOG) {
-        strcpy(s, homedir);
-        strcat(s, "/RedReactor_batteryLog.txt" );
+	const char *homedir = getpwuid(getuid())->pw_dir;	
+	char s[255];
+	if (MAKELOG) {
+		strcpy(s, homedir);
+		strcat(s, "/RedReactor_batteryLog.txt" );
 		// Avoid logfile getting too big with daily use
-        logFile = fopen(s,"w");
-        fprintf(logFile, "Starting Red Reactor pi-battery-widget\n");
-    }
-    else
-        logFile = stdout;
+		logFile = fopen(s,"w");
+		fprintf(logFile, "Starting Red Reactor pi-battery-widget\n");
+	}
+	else
+		logFile = stdout;
 
-    // get LXDE panel icon size
-    iconSize = -1;
-    strcpy(s, homedir);
-    strcat(s, "/.config/lxpanel/LXDE-pi/panels/redreactor.conf");
-    FILE* lxpanel = fopen(s, "r");
-    if (lxpanel == NULL) {
-        printf("Failed to open LXDE panel config file %s\n", s);
-        fprintf(logFile,"Failed to open LXDE panel config file %s\n", s);
-    }
-    else {
-        char lxpaneldata[2048];
-        while ((fgets(lxpaneldata, 2047, lxpanel) != NULL)) {
-            sscanf(lxpaneldata,"iconsize=%d", &iconSize);
+	// get LXDE panel icon size
+	iconSize = -1;
+	strcpy(s, homedir);
+	strcat(s, "/.config/lxpanel/LXDE-pi/panels/redreactor.conf");
+	FILE* lxpanel = fopen(s, "r");
+	if (lxpanel == NULL) {
+		printf("Failed to open LXDE panel config file %s\n", s);
+		fprintf(logFile,"Failed to open LXDE panel config file %s\n", s);
+	}
+	else {
+		char lxpaneldata[2048];
+		while ((fgets(lxpaneldata, 2047, lxpanel) != NULL)) {
+			sscanf(lxpaneldata,"iconsize=%d", &iconSize);
 			sscanf(lxpaneldata,"capacity=%d", &batSize);
-        }
-        fclose(lxpanel);
-    }
-    if (iconSize == -1)    // default
-        iconSize = 36;
+		}
+		fclose(lxpanel);
+	}
+	if (iconSize == -1)    // default
+		iconSize = 36;
 	
 	// Check for sensible capacity, cannot be less than 1000mAh
 	if ((batSize < 1000) || (batSize > 10000)){
 		printf("Failed to obtain valid battery capacity: %dmAh, changing to default %d\n", batSize, DEFAULT_CAPACITY);
-        fprintf(logFile,"Failed to obtain valid battery capacity: %dmAh, changing to default %d\n", batSize, DEFAULT_CAPACITY);
+		fprintf(logFile,"Failed to obtain valid battery capacity: %dmAh, changing to default %d\n", batSize, DEFAULT_CAPACITY);
 		batSize = DEFAULT_CAPACITY;
 	}
-    fprintf(logFile, "Config Data: Icon Size=%d, Capacity=%dmAh\n", iconSize, batSize);
+	fprintf(logFile, "Config Data: Icon Size=%d, Capacity=%dmAh\n", iconSize, batSize);
 
-    // create the drawing surface and fill with icon
+	// create the drawing surface and fill with icon
 
-    strcpy(s, homedir);
-    strcat(s, "/bin/battery_icon.png" );
-    // printf("s = %s\n",s);
-    pixbuf = gdk_pixbuf_new_from_file (s, NULL);
-    if (pixbuf == NULL) {
-        printf("Cannot load icon (%s)\n", s);
-        fprintf(logFile,"Cannot load icon (%s)\n", s);
-        return 1;
-    }
-    format = (gdk_pixbuf_get_has_alpha (pixbuf)) ? CAIRO_FORMAT_ARGB32 : CAIRO_FORMAT_RGB24;
-    height = gdk_pixbuf_get_height (pixbuf);
-    width = gdk_pixbuf_get_width (pixbuf);
-    surface = cairo_image_surface_create (format, iconSize, iconSize);
-    g_assert (surface != NULL);
+	strcpy(s, homedir);
+	strcat(s, "/bin/battery_icon.png" );
+	// printf("s = %s\n",s);
+	pixbuf = gdk_pixbuf_new_from_file (s, NULL);
+	if (pixbuf == NULL) {
+		printf("Cannot load icon (%s)\n", s);
+		fprintf(logFile,"Cannot load icon (%s)\n", s);
+		return 1;
+	}
+	format = (gdk_pixbuf_get_has_alpha (pixbuf)) ? CAIRO_FORMAT_ARGB32 : CAIRO_FORMAT_RGB24;
+	height = gdk_pixbuf_get_height (pixbuf);
+	width = gdk_pixbuf_get_width (pixbuf);
+	surface = cairo_image_surface_create (format, iconSize, iconSize);
+	g_assert (surface != NULL);
 
-    cr = cairo_create (surface);
+	cr = cairo_create (surface);
 
 
-    // scale surface, if necessary
+	// scale surface, if necessary
 
-    if (width != iconSize) {
-        double scaleFactor = (double) iconSize / (double) width;
-        if (iconSize >= 39) {
-            double scaleFactor = (double) (iconSize - 3) / (double) width;
-            cairo_translate(cr, 0.0, 3.0);
-        }
-        else {
-            double scaleFactor = (double) iconSize / (double) width;
-        }
-        cairo_scale(cr, scaleFactor,scaleFactor);
-    }
+	if (width != iconSize) {
+		double scaleFactor = (double) iconSize / (double) width;
+		if (iconSize >= 39) {
+			double scaleFactor = (double) (iconSize - 3) / (double) width;
+			cairo_translate(cr, 0.0, 3.0);
+		}
+		else {
+			double scaleFactor = (double) iconSize / (double) width;
+		}
+		cairo_scale(cr, scaleFactor,scaleFactor);
+	}
 
-    // Draw icon onto the surface
+	// Draw icon onto the surface
 
-    gdk_cairo_set_source_pixbuf (cr, pixbuf, 0, 0);
-    cairo_paint (cr);
-    cairo_destroy (cr);
+	gdk_cairo_set_source_pixbuf (cr, pixbuf, 0, 0);
+	cairo_paint (cr);
+	cairo_destroy (cr);
 
-    // Add timer event
-    // Register the timer and set time in mS.
-    // The timer_event() function is called repeatedly.
+	// Add timer event
+	// Register the timer and set time in mS.
+	// The timer_event() function is called repeatedly.
 
-    global_timeout_ref = g_timeout_add(INTERVAL, (GSourceFunc) timer_event, (gpointer) MainWindow);
+	global_timeout_ref = g_timeout_add(INTERVAL, (GSourceFunc) timer_event, (gpointer) MainWindow);
 
-    // Call the timer function because we don't want to wait for the first time period triggered call
+	// Call the timer function because we don't want to wait for the first time period triggered call
 
-    clock_gettime(CLOCK_MONOTONIC, &resolution);
-    start_time = (resolution.tv_sec); 
-    timer_event(MainWindow);
+	clock_gettime(CLOCK_MONOTONIC, &resolution);
+	start_time = (resolution.tv_sec); 
+	timer_event(MainWindow);
 
-    gtk_main();
+	gtk_main();
 
-    return 0;
+	return 0;
 }
