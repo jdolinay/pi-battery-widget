@@ -42,7 +42,14 @@ The Red Reactor UPS for Raspberry Pi zero, Pi Model 2/3 and Pi Model 4!
 
 **Installation**
 
-Open a terminal and type the following
+The application assumes you already have python3 installed (usually the case on Raspberry Pi OS).  
+However, you also need to install the python INA219 library, as follows from a terminal window:
+
+```
+sudo pip3 install pi-ina219
+```
+
+Then, type the following
 
 ```
   cd
@@ -73,6 +80,8 @@ and creates or updates the ~/.config/lxsession/LXDE-pi/autostart file.
 
 Please adjust your chosen battery capacity by editing ~/.config/lxpanel/LXDE-pi/panels/redreactor.conf
 (given in mAh for total capacity)
+
+When the widget is running, you can check for startup errors and battery information at ~/RedReactor_batterylog.txt
 
 Reboot your pi.
 
