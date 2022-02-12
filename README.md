@@ -2,7 +2,8 @@
 
 This code has been forked from the pi-battery-widget status icon widget, with major design changes
 to support The Red Reactor Raspberry Pi UPS, including accurate battery life modelling for charging
-and discharging profiles.
+and discharging profiles.<br>
+<b>Now features Battery LOW warning and Battery EMPTY Auto-shutdown</b>
 
 Please visit https://github.com/Scally-H/RedReactor for more technical details and code examples.
 
@@ -19,6 +20,8 @@ voltage(float) | current(float)
 ```
 
 **Features**
+- <b>NEW: Battery LOW Warning Pop-up at 10%</b>
+- <b>NEW: Auto shutdown 30 seconds after Battery EMPTY Warning Pop-up at 0% (2.9v)</b>
 - Displays a battery widget on the desktop panel of the general Raspberry LXDE at the right side
 in the System Tray section.
 - The green bar turns red if the battery charge left is below 10%, and yellow if the
@@ -26,11 +29,11 @@ battery is charging.
 - The time remaining is displayed as a tooltip (both for charging and discharging!)
 - The display is updated every 5 seconds
 - Logs all activities in ~/RedReactor_batteryLog.txt
-- Log File shows instant and averaged readings, battery life and status
-   chargingState = -1 is "no battery"
-   chargingState = 0 is "discharging"
-   chargingState = 1 is "charging"
-   chargingState = 2 is "AC or Externally Powered "  
+- Log File shows instant and averaged readings, battery life and status<br>
+   chargingState = -1 is "no battery"<br>
+   chargingState = 0 is "discharging"<br>
+   chargingState = 1 is "charging"<br>
+   chargingState = 2 is "externally powered "<br>
  
 - Actual battery reading code is done in python script based on The Red Reactor configuration
 
