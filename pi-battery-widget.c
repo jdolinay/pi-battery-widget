@@ -66,10 +66,16 @@
 #define BATTERY_VMAX 4.2
 #define BATTERY_OVER 0.02	// Capacity offset while charging
 #define BATTERY_UNDER 0.05	// Capacity offset while not charging
-#define BATTERY_VMIN 2.9
+#define BATTERY_VMIN 2.9	// Safe minimum
+#define BATTERY_WARN 10		// capacity %
+#define BATTERY_EMTY 0		// Shutdown capacity %
+#define BATTERY_SHTD 30		// Seconds to shutdown
 
 //Reference for measured data
 #define DEFAULT_CAPACITY 6000 //mAh
+
+//Get array size
+#define ROWS(arr) ((int) (sizeof (arr) / sizeof (arr)[0]))
 
 //Set to FALSE for general use
 #define DEBUG FALSE 
@@ -86,6 +92,10 @@ int first;
 GtkStatusIcon* statusIcon;
 FILE *logFile;
 
+// Define pop-up window handle and controls
+GtkWidget *popup_window;
+int popup_alarm;
+
 int last_capacity, last_state, last_time;
 double last_voltage;
 double start_time; 
@@ -94,6 +104,7 @@ struct timespec resolution;
 double v_one, v_two, v_three, v_average;
 double a_one, a_two, a_three, a_average;
 int batSize = DEFAULT_CAPACITY;
+int shut_down_timer;
 
 int iconSize;
 
@@ -140,7 +151,7 @@ int exec(const char* cmd,char* buffer){
 
 }
 
-void printLogEntry(int capacity, char* state, char* timeStr,double voltage) {
+void printLogEntry(int capacity, char* state, char* timeStr, double voltage) {
 	time_t rawtime;
 	struct tm *timeinfo;
 	char timeString[80];
@@ -153,9 +164,30 @@ void printLogEntry(int capacity, char* state, char* timeStr,double voltage) {
 
 	fprintf(logFile, ", Capacity: %3d%%", capacity);
 
-	fprintf(logFile, ", %s, %s", state, timeStr);
-	fprintf(logFile, ", voltage %7.5fV\n",voltage);
+	fprintf(logFile, ", T-Tip: %s, %s", state, timeStr);
+	fprintf(logFile, ", I2C Voltage: %2.3fV\n",voltage);
 	fflush(logFile);
+}
+
+// Battery Low Warning pop-up
+void show_warning(GtkWidget *widget, gpointer window, char* msg_lbl, char* msg_txt) {
+    
+	GtkWidget *dialog;
+	dialog = gtk_message_dialog_new(GTK_WINDOW(window),
+			GTK_DIALOG_DESTROY_WITH_PARENT,
+			GTK_MESSAGE_WARNING,
+			GTK_BUTTONS_OK,
+			//"Enable external power supply"
+			msg_txt);
+	//"Battery LOW!"
+	gtk_window_set_title(GTK_WINDOW(dialog), msg_lbl);
+
+	// Run without blocking, response closes
+	g_signal_connect_swapped (dialog,
+							"response",
+							G_CALLBACK (gtk_widget_destroy),
+							dialog);
+	gtk_widget_show_all (dialog);
 }
 
 // The following function is called every INTERVAL msec
@@ -195,7 +227,7 @@ static gboolean timer_event(GtkWidget *widget)
 		
 		// Process RedReactor data to calculate states
 		if ((0 < current) && (current < 10)){
-			// Charged, running of MAINS
+			// Charged, running off MAINS
 			chargingState = EXT_PWR;
 		}
 		else if (current < 0){
@@ -207,7 +239,7 @@ static gboolean timer_event(GtkWidget *widget)
 		}
 		
 		// Check valid data
-		if (current < 10000){
+		if ((current < 10000) && (voltage != 0)){
 			response = 1;
 		} else {
 			current = 0;
@@ -262,11 +294,12 @@ static gboolean timer_event(GtkWidget *widget)
 			{3.548, 4.132, 16840 * batSize/DEFAULT_CAPACITY},
 			{4.132, 4.212, 8590 * batSize/DEFAULT_CAPACITY}
 		};
-		float discharge_model[4][4] = {
+		float discharge_model[5][4] = {
 			{2.9, 2.992, 520 * batSize/DEFAULT_CAPACITY, 1453.1},
 			{2.992, 3.324, 2450 * batSize/DEFAULT_CAPACITY, 1330.2},
 			{3.324, 3.868, 10610 * batSize/DEFAULT_CAPACITY, 1152.4},
-			{3.868, 4.2, 4160 * batSize/DEFAULT_CAPACITY, 1057.8}
+			{3.868, 4.05, 4160 * batSize/DEFAULT_CAPACITY, 1057.8},
+			{4.05, 4.2 + BATTERY_OVER, 120 * batSize/DEFAULT_CAPACITY, 950.0}
 		};
 		
 		int i;
@@ -280,14 +313,17 @@ static gboolean timer_event(GtkWidget *widget)
 			// calculate remaining discharge time in minutes for tooltip, using averaged voltage/current
 			
 			float drain_time = 0.0;
+			float power_ratio = 1.0;
 			
-			// Use size of array
-			for (i = 0; i < 4; ++i) {
+			// First valid row is always partial
+			for (i = ROWS(discharge_model) - 1; i >= 0; --i) {
 				if(v_average >= discharge_model[i][1]){
-					drain_time += discharge_model[i][2] * discharge_model[i][3] / a_average;
+					// BATTERY_OVER ensures i+1 < ROWS - 1
+					power_ratio *= discharge_model[i][3] / discharge_model[i+1][3];
+					drain_time += discharge_model[i][2] * discharge_model[i][3] / (a_average * power_ratio);
 				} else if (v_average < discharge_model[i][0]){
 					// don't use this curve
-					// printf("Skipping");
+					// printf("Skip row %d\n", i);
 				} else{
 					drain_time += ((v_average - discharge_model[i][0]) / (discharge_model[i][1] - discharge_model[i][0])) * discharge_model[i][2] * discharge_model[i][3] / a_average;
 				}
@@ -295,7 +331,7 @@ static gboolean timer_event(GtkWidget *widget)
 				
 			// Displayed in minutes
 			time = (int)drain_time/60;
-			if(DEBUG && 1) printf("Discharging - Time Left: %d min, Vd: %f, mA: %f\n",time,v_average,a_average);
+			if(DEBUG && 1) printf("Discharging - Time Left: %d min, (av)Vd: %.3f, (av)mA: %.2f\n",time,v_average,a_average);
 
 
 		}else if(chargingState == CHARGE){
@@ -305,7 +341,7 @@ static gboolean timer_event(GtkWidget *widget)
 			float charge_time = 0.0;
 			
 			// Use size of array
-			for (i = 0; i < 6; ++i) {
+			for (i = 0; i < ROWS(charge_model); ++i) {
 				if(v_average >= charge_model[i][1]){
 					// don't use this curve
 					// printf("Skipping");
@@ -319,11 +355,11 @@ static gboolean timer_event(GtkWidget *widget)
 				
 			// Displayed in minutes (+1 as clearly not yet finished if <1)
 			time = (int)charge_time/60 + 1;
-			if(DEBUG && 1) printf("Charging - Time Left: %d min, Vd: %f, mA: %f\n",time,v_average,a_average);
+			if(DEBUG && 1) printf("Charging - Time Left: %d min, (av)Vd: %.3f, (av)mA: %.2f\n",time,v_average,a_average);
 
 		}else{
 			if(chargingState == EXT_PWR){
-				if(DEBUG && 1) printf("EXT_PWR - Battery FULL at %7.3f\n", voltage);
+				if(DEBUG && 1) printf("EXT_PWR - Battery FULL at %.3f\n", voltage);
 			}
 
 			time = last_time;
@@ -352,7 +388,7 @@ static gboolean timer_event(GtkWidget *widget)
 	// run script to get information
 	getdata();
 
-	if(DEBUG && 1) printf("RedReactor: V=%f, mA=%f, capacity=%d%%, status=%d\n", voltage, current, capacity, chargingState);
+	if(DEBUG && 1) printf("RedReactor: V=%.3f, mA=%.2f, capacity=%d%%, status=%d\n", voltage, current, capacity, chargingState);
 
 	if ((capacity > 100) || (capacity < 0))
 		capacity = -1;              // capacity out of limits
@@ -482,6 +518,39 @@ static gboolean timer_event(GtkWidget *widget)
 
 	g_object_unref(new_pixbuf);
 	cairo_destroy (cr);
+	
+	// Control forced shutdown, print critical msgs
+	if ((capacity <= BATTERY_EMTY) && (chargingState == DISCHARGE)){
+		printf("Battery Capacity at 0%, shutting down in %d seconds!\n", shut_down_timer);
+		if (shut_down_timer == BATTERY_SHTD) {
+			popup_alarm = TRUE;
+			show_warning(popup_window, MainWindow, "Battery EMPTY!", "System Shutting Down in 30s!!");
+		}
+		if (shut_down_timer <= 0) {
+			printf("Battery EMPTY, forcing system shutdown NOW!\n");
+			fprintf(logFile,"Battery EMPTY, forcing system shutdown NOW!\n");
+			fclose(logFile);
+			system("sudo shutdown now");
+			gtk_main_quit();
+		}
+		shut_down_timer -= INTERVAL/1000;
+	}
+	// Display Battery Low if popup not already active
+	if ((capacity <= BATTERY_WARN) && (chargingState == DISCHARGE) && (popup_alarm == FALSE)) {
+		if(DEBUG && 1) printf("Battery LOW, please enable exteral power\n");
+		popup_alarm = TRUE;
+		show_warning(popup_window, MainWindow, "Battery LOW!", "Enable external power supply");
+	}
+	
+	// Reset alarm status if charging
+	if ((chargingState == CHARGE) && (popup_alarm == TRUE)) {
+		popup_alarm = FALSE;
+		if (shut_down_timer <= BATTERY_SHTD) {
+			if(DEBUG && 1) printf("Charger detected, cancelling shutdown timer\n");
+			fprintf(logFile,"Charger detected, cancelling shutdown timer\n");
+			shut_down_timer = BATTERY_SHTD;
+		}
+	}
 
 	last_capacity = capacity;
 	last_voltage = voltage;
@@ -502,7 +571,12 @@ int main(int argc, char *argv[])
 	GdkPixbuf *pixbuf, *new_pixbuf;
 	cairo_t *cr;
 	cairo_format_t format;
+	
+	// Setup Alarm controls
+	popup_alarm = FALSE;
+	shut_down_timer = BATTERY_SHTD;
 
+	// Track deltas between calls
 	first = TRUE;
 	last_capacity = -1;
 	last_voltage = -1.0;
