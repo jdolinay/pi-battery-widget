@@ -1,6 +1,17 @@
 # pi-battery-widget
 
-This code has been forked from the pi-battery-widget status icon widget, with major design changes
+This code has been forked from the Red Factor widget (https://github.com/jdolinay/pi-battery-widget)
+To be used as universal widget with INA219 sensor.
+
+Main changes (to be updated):
+- converted  to C++ to be able to use INA219 library (https://github.com/regisin/ina219)
+- python script not used
+- config file renamed to pi-battery-widget.txt
+- install and scripts updated
+
+
+Original readme (to be updated):
+pi-battery-widget status icon widget, with major design changes
 to support The Red Reactor Raspberry Pi UPS, including accurate battery life modelling for charging
 and discharging profiles.<br>
 <b>Now features Battery LOW warning and Battery EMPTY Auto-shutdown</b>
