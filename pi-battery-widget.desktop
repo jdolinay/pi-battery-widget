@@ -1,0 +1,13 @@
+[Desktop Entry]
+Type=Application
+Version=1.0
+GenericName=Pi battery widget
+Name=Pi-Battery-Widget
+Comment=Show battery status.
+TryExec=sh -c '$HOME/bin/pi-battery-widget'
+Exec=sh -c '$HOME/bin/pi-battery-widget'
+Terminal=false
+Categories=System;
+StartupNotify=false
+X-GNOME-Autostart-Delay=60
+
