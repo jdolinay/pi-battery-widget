@@ -1,9 +1,10 @@
 /*
- * pi-battery-widget.c
+ * pi-battery-widget.cc
  * 
- * The Red Reactor raspberry pi battery status icon on task bar
- * gets information from the I2C(another python script)
+ * Raspberry pi battery status icon on task bar
+ * gets information from INA219 sensor via I2C
  *
+ * Copyright 2022 Jan Dolinay <j.dolinay@email.cz>
  * Copyright 2022 Pascal Herczog <hello@theredreactor.com>
  * Copyright 2018  Chin-Kai Chang <mezlxx@gmail.com>
  * Derived from https://github.com/mezl/pi-battery-widget
@@ -35,7 +36,6 @@
  * Must be installed at ~/bin, loads pi-battery-reader.py from there
  * Reads the ~/.config/lxpanel/LXDE-pi/panels/pi-battery-widget.conf file if exists
  * 
- * jd: upravy na vyrazeni shutdown, need cpp for ina219 librar
  * 
  */
 
@@ -477,6 +477,7 @@ static gboolean timer_event(GtkWidget *widget)
 	if (width != iconSize) {
 		double scaleFactor = (double) iconSize / (double) width;
 		if (iconSize >= 39) {
+		//if (iconSize >= 48) {
 			double scaleFactor = (double) (iconSize - 3) / (double) width;
 			cairo_translate(cr, 0.0, 3.0);
 		}
@@ -655,7 +656,7 @@ int main(int argc, char *argv[])
 		fclose(lxpanel);
 	}
 	if (iconSize == -1)    // default
-		iconSize = 36;
+		iconSize = 48;  //36;
 	
 	// Check for sensible capacity, cannot be less than 1000mAh
 	if ((batSize < 1000) || (batSize > 10000)){
@@ -690,6 +691,7 @@ int main(int argc, char *argv[])
 	if (width != iconSize) {
 		double scaleFactor = (double) iconSize / (double) width;
 		if (iconSize >= 39) {
+		//if (iconSize >= 48) {
 			double scaleFactor = (double) (iconSize - 3) / (double) width;
 			cairo_translate(cr, 0.0, 3.0);
 		}
