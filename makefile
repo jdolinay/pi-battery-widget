@@ -7,6 +7,6 @@ all: pi-battery-widget
 clean: 
 	rm pi-battery-widget
 
-pi-battery-widget: pi-battery-widget.c
-	gcc -o pi-battery-widget pi-battery-widget.c $(LIBS) $(CFLAGS) -lwiringPi -std=gnu99 -lrt -lm
+pi-battery-widget: pi-battery-widget.cc
+	g++ -o pi-battery-widget pi-battery-widget.cc ina219.cc $(LIBS) $(CFLAGS) -lwiringPi -lrt -lm
 
