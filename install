@@ -19,14 +19,13 @@ chmod +x pi-battery-widget
 # copy necessary files to ~/bin
 cp battery_icon.png ~/bin
 cp pi-battery-widget ~/bin
-cp pi-battery-reader.py ~/bin
 
 # copy config file
-cp redreactor.conf ~/.config/lxpanel/LXDE-pi/panels/redreactor.conf
+cp pi-battery-widget.conf ~/.config/lxpanel/LXDE-pi/panels/pi-battery-widget.conf
 echo "**********************************************************"
 echo "Please check config file capacity value matches your setup"
-echo "~/.config/lxpanel/LXDE-pi/panels/redreactor.conf"
-cat ~/.config/lxpanel/LXDE-pi/panels/redreactor.conf
+echo "~/.config/lxpanel/LXDE-pi/panels/pi-battery-widget.conf"
+cat ~/.config/lxpanel/LXDE-pi/panels/pi-battery-widget.conf
 echo "**********************************************************"
 
 AUTOSTART=~/.config/lxsession/LXDE-pi/autostart
@@ -56,5 +55,5 @@ else
 fi
 
 #restart pi-battery-widget in background making sure that it lives on if calling console is closed
-echo "Starting the Red Reactor Battery Widget..."
+echo "Starting the Pi Battery Widget..."
 nohup ~/bin/pi-battery-widget > /dev/null 2>/dev/null &
