@@ -1,0 +1,36 @@
+#!/bin/bash
+# install pi-battery-widget
+
+if [ `whoami` = root ]; then
+  echo "Please run as the user who has started the desktop, not as root"
+  exit 1
+fi
+
+
+# kill any running pi-battery-widget command so that it can be overwritten
+pkill pi-battery- 2>/dev/null
+
+# create bin directory in ~, if it does not exist
+[ ! -d ~/bin  ] && mkdir ~/bin
+
+#make sure that files are executable
+chmod +x pi-battery-widget
+
+# copy necessary files to ~/bin
+cp battery_icon.png ~/bin
+cp pi-battery-widget ~/bin
+
+# copy config file
+cp pi-battery-widget.conf ~/.config/xfce4/panel/pi-battery-widget.conf
+echo "**********************************************************"
+echo "Please check config file capacity value matches your setup"
+echo "~/.config/.config/xfce4/panel/pi-battery-widget.conf"
+cat ~/.config/xfce4/panel/pi-battery-widget.conf
+echo "**********************************************************"
+
+# copy .desktop file to enable autostart of the widget
+cp pi-battery-widget.desktop ~/.config/autostart/pi-battery-widget.desktop
+
+#restart pi-battery-widget in background making sure that it lives on if calling console is closed
+echo "Starting the Pi Battery Widget..."
+nohup ~/bin/pi-battery-widget > /dev/null 2>/dev/null &

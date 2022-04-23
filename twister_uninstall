@@ -1,0 +1,13 @@
+#!/bin/bash
+# Uninstall pi-battery-widget
+
+# kill running pi-battery-widget command
+pkill pi-battery-
+
+#remove files from ~/bin
+rm ~/bin/battery_icon.png
+rm ~/bin/pi-battery-widget
+rm ~/.config/xfce4/panel/pi-battery-widget.conf
+
+# remove desktop entry from autostart
+rm ~/.config/autostart/pi-battery-widget.desktop
