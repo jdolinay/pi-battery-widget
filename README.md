@@ -144,10 +144,12 @@ Open a terminal and type
 
 
 **New features in the Red Reactor version (from original readme)**
+
 pi-battery-widget status icon widget, with major design changes
 to support The Red Reactor Raspberry Pi UPS, including accurate battery life modelling for charging
 and discharging profiles.<br>
-<b>Now features Battery LOW warning and Battery EMPTY Auto-shutdown</b>
+Now features Battery LOW warning and Battery EMPTY Auto-shutdown.
+
 For details see https://github.com/Scally-H/RedReactor  
 
 **Reference**
