@@ -4,7 +4,7 @@ Readme for https://github.com/jdolinay/pi-battery-widget
 This code has been forked from the Red Factor widget (https://github.com/Scally-H/RedReactor)
 To be used as universal widget with INA219 sensor.
 
-** Main changes **
+**Main changes**
 - converted the code to C++ to be able to use INA219 library (https://github.com/regisin/ina219)
 - python script not used
 - config file renamed to pi-battery-widget.config
@@ -25,7 +25,7 @@ battery is charging.
 ![Alt text](icon.png?raw=true "panel with battery widget")
 
 
-**Installation for Raspberry Pi OS **
+**Installation for Raspberry Pi OS**
 
 The application assumes you already have python3 installed (usually the case on Raspberry Pi OS).  
 However, you also need to install the python INA219 library, as follows from a terminal window:
@@ -92,7 +92,7 @@ Open a terminal and type
   ./uninstall
 ```
 
-**Installation for Twister OS **
+**Installation for Twister OS**
 
 ```
   cd
@@ -143,7 +143,7 @@ Open a terminal and type
 ```
 
 
-** New features in the Red Reactor version (from original readme) **
+**New features in the Red Reactor version (from original readme)**
 pi-battery-widget status icon widget, with major design changes
 to support The Red Reactor Raspberry Pi UPS, including accurate battery life modelling for charging
 and discharging profiles.<br>
