@@ -7,8 +7,7 @@ pkill pi-battery-
 #remove files from ~/bin
 rm ~/bin/battery_icon.png
 rm ~/bin/pi-battery-widget
-rm ~/bin/pi-battery-reader.py
-rm ~/.config/lxpanel/LXDE-pi/panels/redreactor.conf
+rm ~/.config/lxpanel/LXDE-pi/panels/pi-battery-widget.conf
 
 # remove line from lxsession autostart
 cd ~/.config/lxpanel/LXDE-pi/panels
