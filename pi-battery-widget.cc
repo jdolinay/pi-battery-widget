@@ -62,17 +62,17 @@
 
 #define GRAY_LEVEL      0.93	// Background of % charge display
 #define REDLEVEL        10		// below this level battery charge display is red
-#define INTERVAL		8000	// msec between two updates
+#define INTERVAL		10000	// msec between two updates
 
 #define MAKELOG         0	// log file batteryLog in home directory (0 = no log file)
 #define SHUTDOWN		0	// do shutdown (0 = no shutdown, just messages)
 
-#define BATTERY_VMAX 4.2
+#define BATTERY_VMAX 4.15
 #define BATTERY_OVER 0.02	// Capacity offset while charging
 #define BATTERY_UNDER 0.05	// Capacity offset while not charging
-#define BATTERY_VMIN 3.1	// Safe minimum
-#define BATTERY_WARN 20		// capacity %
-#define BATTERY_EMTY 0		// Shutdown capacity %
+#define BATTERY_VMIN 3.1	// Safe minimum voltage. 
+#define BATTERY_WARN 20		// Warning capacity %
+#define BATTERY_EMTY 3		// Shutdown capacity %
 #define BATTERY_SHTD 60		// Seconds to shutdown
 
 // Reference for measured data
@@ -84,7 +84,7 @@
 // Set to FALSE for general use
 #define DEBUG FALSE 
 
-enum State{NO_BATT = -1, DISCHARGE = 0, CHARGE = 1, EXT_PWR = 2};
+enum State { NO_BATT = -1, DISCHARGE = 0, CHARGE = 1, EXT_PWR = 2 };
 cairo_surface_t *surface;
 gint width;
 gint height;
@@ -112,7 +112,7 @@ int shut_down_timer;
 
 int iconSize;
 
-// jd: ina219 init 
+// INA219 config
 float SHUNT_OHMS = 0.1;
 float MAX_EXPECTED_AMPS = 3.2;    
 INA219 g_i(SHUNT_OHMS, MAX_EXPECTED_AMPS);
@@ -493,17 +493,19 @@ static gboolean timer_event(GtkWidget *widget)
 	cairo_destroy (cr);
 	
 	// Control forced shutdown, print critical msgs
-	if ((capacity <= BATTERY_EMTY) && (chargingState == DISCHARGE)){
+	if ((capacity <= BATTERY_EMTY) && (chargingState == DISCHARGE)) {
+
 		printf("Battery Capacity at 0%, shutting down in %d seconds!\n", shut_down_timer);
 		if (shut_down_timer == BATTERY_SHTD) {
 			popup_alarm = TRUE;
 			show_warning(popup_window, MainWindow, "Battery EMPTY!", "System Shutting Down in 60s!!");
 		}
 		if (shut_down_timer <= 0) {
+#if SHUTDOWN			
 			printf("Battery EMPTY, forcing system shutdown NOW!\n");
 			fprintf(logFile,"Battery EMPTY, forcing system shutdown NOW!\n");
 			fclose(logFile);
-#if SHUTDOWN
+
 			system("sudo shutdown now");
 #endif
 			gtk_main_quit();
@@ -575,7 +577,7 @@ int main(int argc, char *argv[])
 	else
 		logFile = stdout;
 		
-	// jd: init INA lib	
+	// init INA219 lib	
     g_inaConfigured = g_i.configure(RANGE_16V, GAIN_8_320MV, ADC_12BIT, ADC_12BIT);
     if (!g_inaConfigured ) {
 		g_inaConfigured = false;
@@ -585,14 +587,27 @@ int main(int argc, char *argv[])
 
 	// get LXDE panel icon size
 	iconSize = -1;
+	bool loadConfig = false;
 	strcpy(s, homedir);
 	strcat(s, "/.config/lxpanel/LXDE-pi/panels/pi-battery-widget.conf");
 	FILE* lxpanel = fopen(s, "r");
 	if (lxpanel == NULL) {
-		printf("Failed to open LXDE panel config file %s\n", s);
-		fprintf(logFile,"Failed to open LXDE panel config file %s\n", s);
+		// try file location as on Twister OS
+		strcpy(s, homedir);
+		strcat(s, "/.config/xfce4/panel/pi-battery-widget.conf");
+		lxpanel = fopen(s, "r");
+		if (lxpanel == NULL) {
+			printf("Failed to open LXDE panel config file %s\n", s);
+			fprintf(logFile,"Failed to open LXDE panel config file %s\n", s);
+			loadConfig = false;
+		} else 
+			loadConfig = true;
 	}
 	else {
+		loadConfig = true;
+	}
+	
+	if ( loadConfig ) {
 		char lxpaneldata[2048];
 		while ((fgets(lxpaneldata, 2047, lxpanel) != NULL)) {
 			sscanf(lxpaneldata,"iconsize=%d", &iconSize);
@@ -600,6 +615,7 @@ int main(int argc, char *argv[])
 		}
 		fclose(lxpanel);
 	}
+	
 	if (iconSize == -1)    // default
 		iconSize = 48;  //36;
 	
@@ -656,7 +672,7 @@ int main(int argc, char *argv[])
 	// Register the timer and set time in mS.
 	// The timer_event() function is called repeatedly.
 	
-	// jd: if sensor was not found, do not set the timer?
+	// If sensor was not found, do not set the timer?
 	// but then no icon is shown. I prefer to have the icon with "no battery"
 	// so let the timer run. The handler will not attempt to read from INA219
 	// anyway as g_inaConfigured is false.	
