@@ -131,7 +131,7 @@ Please adjust your chosen battery capacity by editing ~/.config/lxpanel/LXDE-pi/
 Reboot your pi.
 
 
-**To uninstall the widget**
+**To uninstall the widget for Twister OS**
 
 Open a terminal and type
 
@@ -141,6 +141,14 @@ Open a terminal and type
   chmod +x twister_uninstall
   ./twister_uninstall
 ```
+**Note for TwisterOS**
+If the widget is to be able to shutdown the Pi when battery is empty,
+you need to enable running sudo shutdown command without prompt for password.
+To do this run sudo visudo and add the following line to the sudoers file:
+
+user_name ALL=(ALL) NOPASSWD: /sbin/poweroff, /sbin/reboot, /sbin/shutdown
+
+For more into see https://linuxhandbook.com/sudo-without-password/
 
 
 **New features in the Red Reactor version (from original readme)**
