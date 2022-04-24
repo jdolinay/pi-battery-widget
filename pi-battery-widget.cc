@@ -227,9 +227,9 @@ static gboolean timer_event(GtkWidget *widget)
 	}
 	
 	// Process battery data to calculate states	
-	// jd: wider limist; the current is in mA
+	// jd: wider limits; the current is in mA
 	// if ((0 < current) && (current < 10)){
-	if ((-20 < current) && (current < 30)){
+	if ((-30 < current) && (current < 50 )){
 		// Charged, running off MAINS
 		chargingState = EXT_PWR;
 	}
@@ -249,6 +249,7 @@ static gboolean timer_event(GtkWidget *widget)
 		voltage = 0;
 		chargingState = NO_BATT;		
 	}
+	
 	
 	// Perform averaging to avoid spikes
 	if(last_voltage < 0){
@@ -441,13 +442,13 @@ static gboolean timer_event(GtkWidget *widget)
 		w = 0;
 	else
 		w = (99 * capacity) / 400;
-	if (strcmp(sstatus,"charging") == 0)
+	if ( chargingState == CHARGE )	//strcmp(sstatus,"charging") == 0)
 		cairo_set_source_rgb (cr, 1, 1, 0);//Yellow
 	else if (capacity <= REDLEVEL)
 		cairo_set_source_rgb (cr, 1, 0, 0); //RED
-	else if (strcmp(sstatus,"externally powered") == 0)
+	else if ( chargingState == EXT_PWR )	//strcmp(sstatus,"externally powered") == 0)
 		cairo_set_source_rgb (cr, 0, 1, 0);//Green
-	else if (strcmp(sstatus,"no battery") == 0)
+	else if ( chargingState == NO_BATT )	//strcmp(sstatus,"no battery") == 0)
 		cairo_set_source_rgb (cr, 0, 0, 0);//Black
 	else
 		cairo_set_source_rgb (cr, 0.5, 0.5, 0.7);//GRAY
@@ -652,7 +653,6 @@ int main(int argc, char *argv[])
 	if (width != iconSize) {
 		double scaleFactor = (double) iconSize / (double) width;
 		if (iconSize >= 39) {
-		//if (iconSize >= 48) {
 			double scaleFactor = (double) (iconSize - 3) / (double) width;
 			cairo_translate(cr, 0.0, 3.0);
 		}
