@@ -122,8 +122,8 @@ Finally install the widget with the following commands:
   ./twister_install 
 ```
 
-Please check the install script output for errors. 
-Please adjust your chosen battery capacity by editing ~/.config/xfce4/panel//pi-battery-widget.conf 
+Please check the install script output for errors. It creates .desktop file to autostart the widget in ~/.config/autostart/pi-battery-widget.desktop.
+Please adjust your chosen battery capacity by editing ~/.config/xfce4/panel/pi-battery-widget.conf 
 (given in mAh for total capacity)
 
 Reboot your pi.
