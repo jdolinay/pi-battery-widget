@@ -122,10 +122,8 @@ Finally install the widget with the following commands:
   ./twister_install 
 ```
 
-Please check the install script output for errors. It has been tested on Raspberry Pi with Buster,
-and creates or updates the ~/.config/lxsession/LXDE-pi/autostart file.
-
-Please adjust your chosen battery capacity by editing ~/.config/lxpanel/LXDE-pi/panels/pi-battery-widget.conf
+Please check the install script output for errors. 
+Please adjust your chosen battery capacity by editing ~/.config/xfce4/panel//pi-battery-widget.conf 
 (given in mAh for total capacity)
 
 Reboot your pi.
@@ -146,7 +144,7 @@ If the widget is to be able to shutdown the Pi when battery is empty,
 you need to enable running sudo shutdown command without prompt for password.
 To do this run sudo visudo and add the following line to the sudoers file:
 
-user_name ALL=(ALL) NOPASSWD: /sbin/poweroff, /sbin/reboot, /sbin/shutdown
+your_user_name ALL=(ALL) NOPASSWD: /sbin/poweroff, /sbin/reboot, /sbin/shutdown
 
 For more into see https://linuxhandbook.com/sudo-without-password/
 
